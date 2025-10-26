@@ -1,0 +1,116 @@
+.calendar-day {
+  min-height: 90px;
+  border-radius: 14px;
+  background: white;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+.calendar-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.calendar-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.calendar-day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f9f9ff 0%, #eef3ff 100%);
+}
+.calendar-day.today {
+  border: 2px solid #2563eb;
+  background: #e0ecff;
+}
+.date-number {
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.task-card {
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+.task-card.low {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+}
+.task-card.medium {
+  background: linear-gradient(135deg, #ffb300, #ffca28);
+}
+.task-card.high {
+  background: linear-gradient(135deg, #e53935, #ef5350);
+}
+.task-card.completed {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+.task-card.overdue {
+  border: 2px solid #ff6b35;
+  animation: pulse 2s infinite;
+}
+.task-card.upcoming {
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+}
+@keyframes pulse {
+  0%,
+  100% {
+    border-color: #ff6b35;
+  }
+  50% {
+    border-color: #ff4500;
+  }
+}
+.status-badge {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+.status-badge.upcoming {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.status-badge.completed {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-badge.overdue {
+  background: #fed7aa;
+  color: #9a3412;
+}
+.priority-icon {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+.priority-icon div {
+  width: 2.5px;
+  border-radius: 2px;
+  background: #fff;
+}
+@media (max-width: 640px) {
+  .calendar-day {
+    min-height: 80px;
+  }
+  .task-card {
+    font-size: 11px;
+    padding: 3px 4px;
+  }
+  .date-number {
+    font-size: 12px;
+  }
+}

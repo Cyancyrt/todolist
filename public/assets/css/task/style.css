@@ -1,0 +1,181 @@
+/* Unique "Planning" Icons: Tidak tampak seperti tombol biasa, menggunakan ikon dengan animasi untuk menarik perhatian */
+.planning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    #e3f2fd,
+    #bbdefb
+  ); /* Gradient biru lembut untuk kesan modern */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease; /* Animasi smooth untuk penasaran */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.planning-icon:hover {
+  transform: scale(1.1); /* Scale untuk efek menarik */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(
+    135deg,
+    #bbdefb,
+    #90caf9
+  ); /* Warna berubah on hover */
+}
+/* Efek spesifik untuk ikon plus: Berputar dan melebar menjadi persegi panjang rounded */
+.planning-icon.plus:hover {
+  width: 120px; /* Melebar */
+  border-radius: 24px; /* Rounded rectangle */
+}
+.planning-icon.plus:hover svg {
+  transform: rotate(360deg); /* Berputar */
+  color: #1976d2; /* Warna ikon berubah */
+}
+/* Efek spesifik untuk ikon burger: Hanya melebar menjadi persegi panjang rounded */
+.planning-icon.burger:hover {
+  width: 120px; /* Melebar */
+  border-radius: 24px; /* Rounded rectangle */
+}
+.planning-icon.burger:hover svg {
+  color: #388e3c; /* Warna ikon berubah */
+}
+.planning-icon svg {
+  z-index: 1;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+.planning-icon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+.planning-icon:hover::before {
+  width: 100%;
+  height: 100%;
+}
+.planning-tooltip {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  white-space: nowrap;
+}
+.planning-icon:hover .planning-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+.task-item:hover {
+  cursor: pointer;
+  background-color: #f9fafb; /* Light gray on hover to indicate clickable */
+}
+/* Action icons: Lingkaran untuk tombol baru (cek kalendar) */
+.action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e3f2fd; /* Biru lembut */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.action-icon:hover {
+  transform: scale(1.1);
+  background: #bbdefb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.action-icon svg {
+  width: 16px;
+  height: 16px;
+  color: #1976d2;
+}
+
+/* Tab styles for time filters */
+.tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background-color: #f3f4f6;
+}
+.tab.active {
+  background-color: #3b82f6;
+  color: white;
+}
+.tab:hover {
+  background-color: #dbeafe;
+}
+/* Sorting dropdown */
+.sort-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.sort-dropdown select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+.sort-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.sort-dropdown select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+/* Animasi fade-in untuk tombol yang muncul */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+/* Hover dan focus untuk semua tombol */
+button:hover {
+  transform: scale(1.05);
+}
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* Focus ring biru */
+}
+/* mini action button */
+.mini-action-menu button {
+  transition: background 0.2s, color 0.2s;
+}
+@media (max-width: 768px) {
+  .mini-action-menu {
+    width: 48vw; /* cukup touch-friendly di mobile */
+  }
+}

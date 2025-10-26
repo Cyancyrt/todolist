@@ -1,0 +1,128 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.paper {
+  position: relative;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.4s ease;
+  transition: all 0.3s ease;
+}
+#paper-container {
+  display: grid;
+  justify-content: center;
+  align-items: start;
+  gap: 24px;
+  padding: 24px;
+  transition: all 0.4s ease;
+}
+#paper-container:not(.multiple) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+#paper-container:not(.multiple) .paper {
+  width: 100%;
+  max-width: 720px;
+}
+#paper-container.multiple {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* Tombol tambah note (floating) */
+/* Animasi muncul halus */
+.paper-enter {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+}
+
+.paper-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.4s ease;
+}
+#add-paper-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(45deg, #ffb300, #ffca28);
+  color: white;
+  font-size: 1.5rem;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#add-paper-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Tombol hapus kecil di tiap note tambahan */
+.delete-note-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(240, 240, 240, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.delete-note-btn:hover {
+  background: #ef5350;
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.editor-container {
+  min-height: 200px;
+  max-height: 300px; /* 🔹 tambahkan batas tinggi di sini */
+  overflow-y: auto;
+  border: none;
+  outline: none;
+  padding: 10px;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 24px,
+    #f0f0f0 24px,
+    #f0f0f0 25px
+  );
+  background-size: 100% 25px;
+  line-height: 25px;
+}
+.editor-container:empty::before {
+  content: attr(data-placeholder);
+  color: #999;
+  font-style: italic;
+  pointer-events: none;
+}
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
