@@ -1,86 +1,57 @@
-/* Unique "Planning" Icons: Tidak tampak seperti tombol biasa, menggunakan ikon dengan animasi untuk menarik perhatian */
 .planning-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    #e3f2fd,
-    #bbdefb
-  ); /* Gradient biru lembut untuk kesan modern */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease; /* Animasi smooth untuk penasaran */
-  cursor: pointer;
   position: relative;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
 }
 .planning-icon:hover {
-  transform: scale(1.1); /* Scale untuk efek menarik */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(
-    135deg,
-    #bbdefb,
-    #90caf9
-  ); /* Warna berubah on hover */
+  background-color: rgba(0, 0, 0, 0.05); /* Efek hover ringan pada background */
 }
-/* Efek spesifik untuk ikon plus: Berputar dan melebar menjadi persegi panjang rounded */
-.planning-icon.plus:hover {
-  width: 120px; /* Melebar */
-  border-radius: 24px; /* Rounded rectangle */
+
+/* Ikon SVG: Berputar saat hover, tetap di posisi kiri */
+.planning-icon:hover svg {
+  transform: rotate(90deg); /* Putar 90 derajat saat hover */
 }
-.planning-icon.plus:hover svg {
-  transform: rotate(360deg); /* Berputar */
-  color: #1976d2; /* Warna ikon berubah */
-}
-/* Efek spesifik untuk ikon burger: Hanya melebar menjadi persegi panjang rounded */
-.planning-icon.burger:hover {
-  width: 120px; /* Melebar */
-  border-radius: 24px; /* Rounded rectangle */
-}
-.planning-icon.burger:hover svg {
-  color: #388e3c; /* Warna ikon berubah */
-}
-.planning-icon svg {
-  z-index: 1;
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-.planning-icon::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.3s ease, height 0.3s ease;
-}
-.planning-icon:hover::before {
-  width: 100%;
-  height: 100%;
-}
+
+/* Tooltip: Teks di sebelah kanan ikon, muncul hanya saat hover di device yang mendukung hover */
 .planning-tooltip {
-  position: absolute;
-  bottom: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  position: absolute;
+  left: 100%; /* Posisi di sebelah kanan ikon */
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 1rem; /* Jarak lebih besar dari ikon untuk menghindari overlapping */
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
   white-space: nowrap;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1; /* Z-index rendah agar tidak mengganggu klik */
+  pointer-events: none; /* Mencegah tooltip diklik atau memicu event */
 }
-.planning-icon:hover .planning-tooltip {
-  opacity: 1;
-  visibility: visible;
+
+/* Hanya tampilkan tooltip di device yang mendukung hover (desktop) */
+@media (hover: hover) {
+  .planning-icon:hover .planning-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Responsivitas: Pada mobile, tooltip tidak muncul sama sekali untuk menghindari gangguan */
+@media (max-width: 640px) {
+  .planning-tooltip {
+    display: none; /* Sembunyikan tooltip di mobile */
+  }
+}
+.rotated {
+  transform: rotate(90deg) !important; /* Override jika perlu */
 }
 .task-item:hover {
   cursor: pointer;
@@ -124,6 +95,10 @@
 }
 .tab:hover {
   background-color: #dbeafe;
+}
+.tab.active:hover {
+  background-color: #3b82f6; /* tetap biru */
+  color: white;
 }
 /* Sorting dropdown */
 .sort-dropdown {
@@ -178,4 +153,64 @@ button:focus {
   .mini-action-menu {
     width: 48vw; /* cukup touch-friendly di mobile */
   }
+}
+.invisible-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.visible-checkbox {
+  opacity: 1;
+  width: 18px;
+  height: 18px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* State default (inactive) */
+.activity-tab {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+.activity-tab:hover {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.activity-tab:focus {
+  ring-color: #3b82f6;
+}
+
+/* State active */
+.activity-tab.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+  transform: scale(1.05);
+}
+.activity-tab[data-type="social"].active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Responsivitas */
+@media (max-width: 640px) and (orientation: portrait) {
+  .activity-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  .activity-tab svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* Transisi filter */
+.activity-item {
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.activity-item.hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
 }

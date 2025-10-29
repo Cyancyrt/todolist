@@ -15,7 +15,7 @@ class CreateActivities extends Migration
             'description'    => ['type' => 'TEXT', 'null' => true],
             'recurrence'     => ['type' => 'ENUM', 'constraint' => ['none', 'daily', 'weekly', 'monthly'], 'default' => 'none'],
             'created_by'     => ['type' => 'INT'],
-            'status'         => ['type' => 'ENUM', 'constraint' => ['upcoming', 'ongoing', 'done', 'missed'], 'default' => 'upcoming'],
+            'status'         => ['type' => 'ENUM', 'constraint' => ['upcoming', 'done', 'missed'], 'default' => 'upcoming'],
             'created_at'     => ['type' => 'DATETIME'],
         ]);
         $this->forge->addKey('id', true);

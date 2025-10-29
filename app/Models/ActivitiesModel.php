@@ -56,4 +56,17 @@ class ActivitiesModel extends Model
         return $this->select('activities.*, users.name as creator_name')
                     ->join('users', 'users.id = activities.created_by');
     }
+    public function getAllWithRelations()
+    {
+        return $this->select('
+                activities.*, 
+                users.name AS creator_name, 
+                activity_schedule.schedule_date,
+            ')
+            ->join('users', 'users.id = activities.created_by', 'left')
+            ->join('activity_schedule', 'activity_schedule.activity_id = activities.id', 'left')
+            ->orderBy('activities.id', 'ASC')
+            ->findAll();
+    }
+
 }

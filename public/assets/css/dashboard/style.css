@@ -10,21 +10,45 @@
   color: #2e7d32;
 }
 
-/* Sidebar hover animation */
-aside {
-  transition: width 0.4s ease-in-out; /* Smooth animation, not too fast (0.4s) for readability */
+/* Pastikan sidebar hover tidak terganggu */
+aside.group:hover {
+  width: 12rem !important; /* Override hover:w-48 jika perlu */
+  transition: all 0.4s ease-in-out !important;
 }
-aside:hover {
-  width: 16rem; /* 256px, expanded for text visibility */
+aside.group .sidebar-item {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease-in-out !important;
 }
-.sidebar-item {
-  opacity: 0;
-  transition: opacity 0.4s ease-in-out;
-  pointer-events: none;
+aside.group:hover .sidebar-item {
+  opacity: 1 !important;
 }
-aside:hover .sidebar-item {
-  opacity: 1;
-  pointer-events: auto;
+aside.group .group-hover\:pl-2 {
+  padding-left: 0 !important;
+}
+aside.group:hover .group-hover\:pl-2 {
+  padding-left: 0.5rem !important; /* Sesuaikan dengan group-hover:pl-2 */
+}
+aside.group .group-hover\:scale-110 {
+  transform: scale(1) !important;
+}
+aside.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1) !important;
+}
+
+/* Mencegah elemen lain mengganggu hover sidebar */
+aside.group {
+  z-index: 1000 !important; /* Tinggi z-index agar tidak tertutup */
+  position: relative !important;
+}
+main {
+  z-index: 1 !important; /* Pastikan main di bawah sidebar */
+}
+
+/* Responsivitas: Pastikan hover hanya di desktop */
+@media (max-width: 768px) {
+  aside.group:hover {
+    width: 5rem !important; /* Kembali ke default di mobile */
+  }
 }
 
 /* Profile dropdown */

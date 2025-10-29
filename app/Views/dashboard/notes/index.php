@@ -5,31 +5,28 @@
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
     <h2 class="text-xl font-semibold">Note List</h2>
-    <nav class="flex space-x-4">
-      <button class="bg-blue-100 px-4 py-2 rounded hover:bg-blue-200 transition-colors">Personal</button>
-      <button class="bg-green-100 px-4 py-2 rounded hover:bg-green-200 transition-colors">Social</button>
-    </nav>
   </div>
 
-  <!-- Mode buttons -->
-  <div id="actionButtons" class="mb-6 flex space-x-4 transition-all duration-300">
-    <!-- Create -->
-    <div id="createIcon" class="planning-icon plus" title="Create New Note">
-      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-      </svg>
-      <div class="planning-tooltip">Create New Note</div>
-    </div>
-
-    <!-- View All -->
-    <div id="viewAllIcon" class="planning-icon burger" title="View All Notes">
-      <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-      </svg>
-      <div class="planning-tooltip">View All Notes</div>
-    </div>
+  <div class="mb-6 flex space-x-4" id="planningIcons">
+      <a href="<?= base_url('dashboard/notes/create') ?>" class="planning-icon plus" id="createBtn" title="Create New Activities">
+          <svg class="w-6 h-6 text-blue-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span class="planning-tooltip" id="createTooltip">Create New Note</span>
+      </a>
+      <div class="planning-icon burger" id="viewAllBtn" onclick="alert('Navigating to View All Tasks Page!')">
+          <svg class="w-6 h-6 text-green-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+          </svg>
+          <span class="planning-tooltip" id="viewTooltip">View All Notes</span>
+      </div>
+      <button class="planning-icon delete hidden" id="deleteSelectedBtn" title="Delete Selected">
+          <svg class="w-6 h-6 text-red-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          <span class="planning-tooltip">Delete Selected</span>
+      </button>
   </div>
-
   <!-- Select controls -->
   <div class="flex flex-col sm:flex-row justify-end mb-4 space-y-2 sm:space-y-0 sm:space-x-2">
     <button id="selectModeBtn" class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400" title="Aktifkan mode pilih">
@@ -118,151 +115,57 @@
   </div>
 </div>
 
-<style>
-  .scale-100 { transform: scale(1) !important; opacity: 1 !important; }
-  .planning-icon, .delete-selected-icon {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
-    transition: all 0.3s ease; position: relative; overflow: hidden;
-  }
-  .planning-icon.plus { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); }
-  .planning-icon.burger { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); }
-  .planning-icon:hover, .delete-selected-icon:hover { transform: scale(1.1); }
-  .planning-tooltip {
-    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-    background: #333; color: white; padding: 4px 8px; border-radius: 4px;
-    font-size: 12px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
-  }
-  .planning-icon:hover .planning-tooltip { opacity: 1; visibility: visible; }
-  .delete-selected-icon {
-    background: linear-gradient(135deg, #FFCDD2, #EF5350);
-  }
-</style>
 
+<script src="<?= base_url('assets/js/main.js') ?>" type="module"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('deleteModal');
-  const modalContent = document.getElementById('modalContent');
-  const selectModeBtn = document.getElementById('selectModeBtn');
-  const selectAllBtn = document.getElementById('selectAllBtn');
-  const createIcon = document.getElementById('createIcon');
-  const viewAllIcon = document.getElementById('viewAllIcon');
-  const checkboxes = document.querySelectorAll('.note-checkbox');
-  let noteToDelete = null;
-  let isSelectMode = false;
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = document.querySelectorAll('#activityTabs .activity-tab');
+  const createTooltip = document.getElementById('createTooltip');
+  const createIcon = document.querySelector('#createBtn svg');
+  const viewTooltip = document.querySelector('#viewAllBtn .planning-tooltip');
+  const viewIcon = document.querySelector('#viewAllBtn svg');
+  const titleCase = document.querySelector('h3.title-case');
 
-  // Delete modal logic
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      noteToDelete = btn.closest('.note-item');
-      modal.classList.remove('hidden');
-      setTimeout(() => modalContent.classList.add('scale-100'), 10);
+  // Default (personal)
+  let currentType = 'personal';
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Ambil tipe tab (personal/social)
+      const selectedType = tab.getAttribute('data-type');
+      currentType = selectedType;
+
+      // Ubah teks tooltip sesuai tipe
+      if (selectedType === 'social') {
+        titleCase.textContent = 'Your Social Activities';
+        createTooltip.textContent = 'Create New Social Activities';
+        viewTooltip.textContent = 'View All Social Activities';
+
+        // Ganti warna ikon agar terasa beda konteks
+        createIcon.classList.remove('text-blue-600');
+        createIcon.classList.add('text-green-600');
+        viewIcon.classList.remove('text-green-600');
+        viewIcon.classList.add('text-blue-600');
+      } else {
+        titleCase.textContent = 'Your Personal Activities';
+        createTooltip.textContent = 'Create New Personal Activities';
+        viewTooltip.textContent = 'View All Personal Activities';
+
+        // Kembalikan warna semula
+        createIcon.classList.remove('text-green-600');
+        createIcon.classList.add('text-blue-600');
+        viewIcon.classList.remove('text-blue-600');
+        viewIcon.classList.add('text-green-600');
+      }
+
+      // Tandai tab aktif
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
     });
   });
-
-  document.getElementById('cancelDelete').addEventListener('click', () => {
-    modalContent.classList.remove('scale-100');
-    setTimeout(() => modal.classList.add('hidden'), 300);
-  });
-
-  document.getElementById('confirmDelete').addEventListener('click', () => {
-    if (noteToDelete) noteToDelete.remove();
-    modalContent.classList.remove('scale-100');
-    setTimeout(() => modal.classList.add('hidden'), 300);
-  });
-
-  // Select mode
-    selectModeBtn.addEventListener('click', () => {
-    const active = selectModeBtn.dataset.active === 'true';
-    selectModeBtn.dataset.active = !active;
-    checkboxes.forEach(cb => cb.classList.toggle('hidden', active));
-    selectAllBtn.classList.toggle('hidden', active);
-
-    const deleteBtns = document.querySelectorAll('.delete-btn');
-
-    if (!active) {
-        // Masuk mode select
-        isSelectMode = true;
-        createIcon.style.display = 'none';
-        viewAllIcon.style.display = 'none';
-        showDeleteSelected();
-        cancelSelectBtn.classList.remove('hidden'); // tampilkan tombol cancel
-        deleteBtns.forEach(btn => btn.classList.add('hidden')); // ✅ sembunyikan tombol delete
-    } else {
-        // Keluar mode select
-        isSelectMode = false;
-        cancelSelectBtn.classList.add('hidden');
-        deleteBtns.forEach(btn => btn.classList.remove('hidden')); // ✅ tampilkan kembali tombol delete
-        restoreIcons();
-    }
-    });
-    // Cancel select mode
-    document.getElementById('cancelSelectBtn').addEventListener('click', () => {
-        selectModeBtn.dataset.active = false;
-        isSelectMode = false;
-        checkboxes.forEach(cb => {
-            cb.checked = false;
-            cb.classList.add('hidden');
-        });
-        selectAllBtn.classList.add('hidden');
-        cancelSelectBtn.classList.add('hidden');
-        restoreIcons();
-
-        // ✅ tampilkan kembali tombol delete
-        document.querySelectorAll('.delete-btn').forEach(btn => btn.classList.remove('hidden'));
-    });
-
-  selectAllBtn.addEventListener('click', () => {
-    const allChecked = [...checkboxes].every(cb => cb.checked);
-    checkboxes.forEach(cb => cb.checked = !allChecked);
-  });
-
-  // Dynamic delete-selected icon
-  function showDeleteSelected() {
-    const container = document.getElementById('actionButtons');
-    const del = document.createElement('div');
-    del.id = 'deleteSelectedIcon';
-    del.className = 'delete-selected-icon';
-    del.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 3h6a1 1 0 011 1v1H8V4a1 1 0 011-1z" />
-        </svg>
-      <div class="planning-tooltip">Delete Selected</div>
-    `;
-    del.addEventListener('click', () => {
-      const selected = [...checkboxes].filter(cb => cb.checked);
-      if (selected.length === 0) return alert('No notes selected');
-      modal.classList.remove('hidden');
-      setTimeout(() => modalContent.classList.add('scale-100'), 10);
-    });
-    container.appendChild(del);
-  }
-
-  function restoreIcons() {
-    const container = document.getElementById('actionButtons');
-    document.getElementById('deleteSelectedIcon')?.remove();
-    createIcon.style.display = 'inline-flex';
-    viewAllIcon.style.display = 'inline-flex';
-  }
-
-  // Edit note on click
-  document.querySelectorAll('.note-item').forEach(item => {
-    item.addEventListener('click', e => {
-        // Abaikan klik di tombol delete atau checkbox
-        if (e.target.closest('.delete-btn') || e.target.closest('.note-checkbox')) return;
-
-        if (isSelectMode) {
-        //  Jika sedang mode select, toggle checkbox
-        const checkbox = item.querySelector('.note-checkbox');
-        checkbox.checked = !checkbox.checked;
-        } else {
-        //  Jika bukan mode select, lanjutkan ke mode edit
-        alert('Editing: ' + item.querySelector('h4').textContent);
-        }
-    });
-    });
 });
+
 </script>
+
 
 <?= $this->endSection() ?>

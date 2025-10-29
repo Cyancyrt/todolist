@@ -44,7 +44,7 @@ class ActivityManagementSeeder extends Seeder
             'description' => 'Sapu, cangkul, dan plastik sampah',
             'due_time' => '2025-10-27 06:30:00',
             'priority' => 'medium',
-            'status' => 'pending',
+            'status' => 'upcoming',
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 

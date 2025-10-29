@@ -15,7 +15,7 @@ class CreateTask extends Migration
             'description' => ['type' => 'TEXT', 'null' => true],
             'due_time'    => ['type' => 'DATETIME', 'null' => true],
             'priority'    => ['type' => 'ENUM', 'constraint' => ['low', 'medium', 'high'], 'default' => 'medium'],
-            'status'      => ['type' => 'ENUM', 'constraint' => ['pending', 'done', 'missed'], 'default' => 'pending'],
+            'status'      => ['type' => 'ENUM', 'constraint' => ['upcoming', 'done', 'missed'], 'default' => 'upcoming'],
             'created_at'  => ['type' => 'DATETIME'],
         ]);
         $this->forge->addKey('id', true);
