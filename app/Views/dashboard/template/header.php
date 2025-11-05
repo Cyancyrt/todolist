@@ -17,7 +17,9 @@
                 <div class="dropdown-menu">
                     <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">View Profile</a>
                     <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
-                    <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+                    <form action="<?= base_url('/logout') ?>" method="POST">
+                        <button type="submit" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -41,7 +41,7 @@ class ActivityController extends BaseController
             'name' => 'required|min_length[3]|max_length[150]',
             'type' => 'required|in_list[personal,social]',
             'description' => 'permit_empty|max_length[500]',
-            'schedule_date' => 'required', // because bisa multiple
+            'next_run_at' => 'required', // because bisa multiple
             'recurrence' => 'required|in_list[none,daily,weekly,monthly]',
             'created_by' => 'required|integer'
         ];
@@ -61,7 +61,7 @@ class ActivityController extends BaseController
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
             // Insert schedule dates
-            $dates = $this->request->getPost('schedule_date'); // array dari form
+            $dates = $this->request->getPost('next_run_at'); // array dari form
             if (!is_array($dates)) {
                 $dates = [$dates];
             }
@@ -69,7 +69,7 @@ class ActivityController extends BaseController
                 try {
                     $this->scheduleModel->insert([
                         'activity_id' => $activityId,
-                        'schedule_date' => date('Y-m-d H:i:s', strtotime($date)),
+                        'next_run_at' => date('Y-m-d H:i:s', strtotime($date)),
                     ]);
                 } catch (\Throwable $th) {
                     log_message('error', 'Gagal menyimpan jadwal aktivitas. Error: ' . $th->getMessage());
@@ -107,7 +107,7 @@ class ActivityController extends BaseController
             'name' => 'required|min_length[3]|max_length[150]',
             'type' => 'required|in_list[personal,social]',
             'description' => 'permit_empty|max_length[500]',
-            'schedule_date' => 'required', // because bisa multiple
+            'next_run_at' => 'required', // because bisa multiple
             'recurrence' => 'required|in_list[none,daily,weekly,monthly]',
         ];
         if (!$this->validate($rules)) {
@@ -125,7 +125,7 @@ class ActivityController extends BaseController
                 foreach ($dates as $date) {
                     $newSchedules[] = [
                         'activity_id'   => $activityId,
-                        'schedule_date' => date('Y-m-d H:i:s', strtotime($date))
+                        'next_run_at' => date('Y-m-d H:i:s', strtotime($date))
                     ];
                 }
                 if (!empty($newSchedules)) {

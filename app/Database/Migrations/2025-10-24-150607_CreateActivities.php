@@ -16,6 +16,7 @@ class CreateActivities extends Migration
             'recurrence'     => ['type' => 'ENUM', 'constraint' => ['none', 'daily', 'weekly', 'monthly'], 'default' => 'none'],
             'created_by'     => ['type' => 'INT'],
             'status'         => ['type' => 'ENUM', 'constraint' => ['upcoming', 'done', 'missed'], 'default' => 'upcoming'],
+            'notify_enabled' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 1],
             'created_at'     => ['type' => 'DATETIME'],
         ]);
         $this->forge->addKey('id', true);
@@ -26,11 +27,15 @@ class CreateActivities extends Migration
         $this->forge->addField([
             'id'             => ['type' => 'INT', 'auto_increment' => true],
             'activity_id'    => ['type' => 'INT'],
-            'schedule_date'  => ['type' => 'DATETIME'],
+            'next_run_at'    => ['type' => 'DATETIME', 'null' => true], 
+            'last_run_at'    => ['type' => 'DATETIME', 'null' => true], // opsional tapi bagus untuk log
+            'run_count'      => ['type' => 'INT', 'default' => 0], 
         ]);
+
         $this->forge->addKey('id', true);
         $this->forge->addForeignKey('activity_id', 'activities', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('activity_schedule');
+
 
     }
 

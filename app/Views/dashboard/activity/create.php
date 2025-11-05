@@ -206,7 +206,7 @@ function updateSelectedDates(dates) {
         container.appendChild(chip);
         const input = document.createElement('input');
         input.type = 'hidden';
-        input.name = 'schedule_date[]';
+        input.name = 'next_run_at[]';
         input.value = date.toISOString().slice(0, 16).replace('T', ' ');
         container.appendChild(input);
     });

@@ -12,7 +12,7 @@ class ActivityScheduleModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields = ['activity_id', 'schedule_date'];
+    protected $allowedFields = ['activity_id', 'next_run_at', 'last_run_at', 'run_count'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;

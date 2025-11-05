@@ -15,11 +15,11 @@
             <p class="text-sm text-gray-600">
                 <p class="text-sm text-gray-600">
                     <strong>Time:</strong> 
-                    <?= !empty($task['schedule_date']) 
+                    <?= !empty($task['next_run_at']) 
                         ? '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 shadow-sm hover:bg-blue-200 transition-colors duration-200">
                             <svg class="w-3.5 h-3.5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>' . esc((new DateTime($task['schedule_date']))->format('M j, Y \a\t g:i A')) . 
+                            </svg>' . esc((new DateTime($task['next_run_at']))->format('M j, Y \a\t g:i A')) . 
                         '</span>'
                         : '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 shadow-sm">Unknown</span>'
                     ?>

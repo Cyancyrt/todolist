@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@editorjs/editorjs": "^2.31.0"
+    "@editorjs/editorjs": "^2.31.0",
+    "firebase": "^12.5.0"
   }
 }
