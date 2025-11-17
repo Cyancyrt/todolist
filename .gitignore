@@ -17,3 +17,4 @@ yarn-error.log*
 *.tmp
 
 vendor/
+app/Config/service-account-firebase.json
