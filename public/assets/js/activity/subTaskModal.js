@@ -1,3 +1,46 @@
+function formatDeadline(deadlineStr) {
+  if (!deadlineStr) return "Tidak ada batas waktu";
+
+  const deadline = new Date(deadlineStr);
+  if (isNaN(deadline)) return "Format waktu tidak valid";
+
+  const now = new Date();
+
+  // Daftar nama hari dan bulan dalam bahasa Indonesia
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const months = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+  const dayName = days[deadline.getDay()];
+  const day = deadline.getDate();
+  const month = months[deadline.getMonth()];
+  const year = deadline.getFullYear();
+
+  const hours = String(deadline.getHours()).padStart(2, "0");
+  const minutes = String(deadline.getMinutes()).padStart(2, "0");
+
+  const formatted = `${dayName}, ${day} ${month} ${year} pukul ${hours}:${minutes} WIB`;
+
+  // Tandai jika sudah lewat
+  if (deadline < now) {
+    return `⚠️ <span class="text-red-600 font-semibold">Terlambat!</span> (${formatted})`;
+  }
+
+  // Jika masih jauh dari sekarang
+  return `📅 ${formatted}`;
+}
+
 // Toggle tampilkan / sembunyikan sub-task list
 function toggleSubTasks(btn) {
   const subTasks = btn.closest(".task-item").querySelector(".sub-tasks");
@@ -24,64 +67,113 @@ document.addEventListener("DOMContentLoaded", () => {
     const subTask = e.target.closest(".sub-task");
     if (!subTask) return;
 
-    const name = subTask.dataset.name;
-    const desc = JSON.parse(subTask.dataset.desc);
-    const deadline = subTask.dataset.deadline;
-    const status = subTask.dataset.status;
+    const id = subTask.dataset.id;
 
-    openSubModal(subTask, name, desc, deadline, status);
+    openSubModal(subTask, id);
   });
 });
 // Buka modal dengan data
-function openSubModal(taskElement, name, desc, deadline, status) {
+async function openSubModal(taskElement, id) {
   const modal = document.getElementById("subActivityModal");
-  modal.classList.remove("hidden");
-  modal.querySelector("div").classList.replace("scale-95", "scale-100");
-  document.getElementById("subName").textContent = name;
-  document.getElementById("subDeadline").textContent = deadline;
-  document.getElementById("subStatus").textContent = status;
-
-  const statusSpan = document.getElementById("subStatus");
-  statusSpan.className =
-    "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
-  if (status === "Completed")
-    statusSpan.classList.add("bg-green-100", "text-green-800");
-  else if (status === "In Progress")
-    statusSpan.classList.add("bg-blue-100", "text-blue-800");
-  else statusSpan.classList.add("bg-yellow-100", "text-yellow-800");
-
-  // Reset div sebelum inisialisasi editor baru
   const holder = document.getElementById("editorjs-checklist");
-  holder.innerHTML = "";
+  const form = document.getElementById("statusForm");
+  const btn = document.getElementById("statusBtn");
+  const statusSpan = document.getElementById("subStatus");
 
-  // 🧩 Simpan ke variabel
-  const editor = new EditorJS({
-    holder: "editorjs-checklist",
-    tools: {
-      checklist: { class: Checklist, inlineToolbar: true },
-    },
-    defaultBlock: "checklist",
-    data: desc,
-    onChange: async () => {
-      const data = await editor.save();
-      if (data.blocks.length > 1) {
-        const first = data.blocks[0];
-        editor.render({ blocks: [first] });
-      }
-    },
-    onReady: () => {
-      // Allow checkbox toggling, tapi cegah edit teks
-      const checkboxes = holder.querySelectorAll('input[type="checkbox"]');
-      checkboxes.forEach((c) => (c.disabled = false));
+  holder.innerHTML = ""; // reset editor container
 
-      // Prevent Enter key (tidak bisa buat line baru)
-      holder.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") e.preventDefault();
-      });
-    },
-  });
+  // --- Fetch data terbaru ---
+  try {
+    const res = await fetch(`task/get-subtask/${id}`);
+    const json = await res.json();
 
-  modal.dataset.taskElement = taskElement;
+    if (!json.success) throw new Error(json.error || "Failed to load data");
+    const data = json.data;
+
+    // --- Tampilkan modal ---
+    modal.classList.remove("hidden");
+    modal.querySelector("div").classList.replace("scale-95", "scale-100");
+
+    // --- Isi konten modal ---
+    document.getElementById("subName").textContent = data.name;
+    document.getElementById("subDeadline").innerHTML = formatDeadline(
+      data.deadline
+    );
+    document.getElementById("subStatus").textContent = data.status;
+    const editBtn = document.getElementById("editSubtaskBtn");
+    if (editBtn) {
+      editBtn.href = `/dashboard/task/edit/${id}`;
+    }
+
+    // --- Update status tombol ---
+    const normStatus = (data.status || "").toLowerCase();
+    if (normStatus === "done" || normStatus === "completed") {
+      form.action = `#`;
+      btn.textContent = "Marked as Missed";
+      btn.classList.remove("bg-green-600", "hover:bg-green-700");
+      btn.classList.add("bg-red-600", "hover:bg-red-700");
+      btn.disabled = true;
+    } else {
+      form.action = `task/complete/${data.id}`;
+      btn.textContent = "Mark as Completed";
+      btn.classList.remove("bg-red-600", "hover:bg-red-700");
+      btn.classList.add("bg-green-600", "hover:bg-green-700");
+      btn.disabled = false;
+    }
+
+    // --- Update warna status indicator ---
+    statusSpan.className =
+      "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium";
+    if (normStatus === "completed" || normStatus === "done")
+      statusSpan.classList.add("bg-green-100", "text-green-800");
+    else if (normStatus === "in progress")
+      statusSpan.classList.add("bg-blue-100", "text-blue-800");
+    else statusSpan.classList.add("bg-yellow-100", "text-yellow-800");
+
+    // --- Inisialisasi EditorJS dengan data dari server ---
+    let saveTimer;
+    const editor = new EditorJS({
+      holder: "editorjs-checklist",
+      tools: { checklist: { class: Checklist, inlineToolbar: true } },
+      defaultBlock: "checklist",
+      data: data.description,
+      async onChange() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(async () => {
+          try {
+            console.log("Auto-saving checklist...");
+            const payload = await editor.save();
+            const res = await fetch(`task/update-checklist/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "<?= csrf_hash() ?>",
+              },
+              body: JSON.stringify({ checklist: payload }),
+            });
+
+            if (!res.ok) throw new Error("Failed to save");
+          } catch (err) {
+            console.error("Error auto-saving checklist:", err);
+          }
+        }, 600);
+      },
+      onReady: () => {
+        holder
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((c) => (c.disabled = false));
+        holder.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") e.preventDefault();
+        });
+      },
+    });
+
+    modal._editorInstance = editor;
+    modal.dataset.taskElement = taskElement;
+  } catch (err) {
+    console.error("Failed to open modal:", err);
+    alert("Terjadi kesalahan saat memuat subtask.");
+  }
 }
 
 // Update status task

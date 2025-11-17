@@ -56,28 +56,34 @@ class ActivitiesModel extends Model
         return $this->select('activities.*, users.name as creator_name')
                     ->join('users', 'users.id = activities.created_by');
     }
-    public function getAllWithRelations()
+    public function getAllWithRelations($userId)
     {
-    return $this->select('
-            activities.*, 
-            users.name AS creator_name, 
-            next_schedule.next_run_at AS next_run_at
-        ')
-        ->join('users', 'users.id = activities.created_by', 'left')
-        // Join to a subquery that finds the MINIMUM next_run_at (closest to now) for each activity_id
-        ->join('(
-            SELECT 
-                activity_id, 
-                MIN(next_run_at) AS next_run_at
-            FROM 
-                activity_schedule
-            WHERE 
-                next_run_at >= NOW() -- Only consider schedules in the future or present
-            GROUP BY 
-                activity_id
-        ) AS next_schedule', 'next_schedule.activity_id = activities.id')
-        ->orderBy('activities.id', 'ASC')
-        ->findAll();
+        return $this->select('
+                activities.*, 
+                users.name AS creator_name, 
+                next_schedule.next_run_at AS next_run_at
+            ')
+            ->join('users', 'users.id = activities.created_by', 'left')
+
+            // Subquery schedule terdekat
+            ->join('(
+                SELECT 
+                    activity_id, 
+                    MIN(next_run_at) AS next_run_at
+                FROM 
+                    activity_schedule
+                WHERE 
+                    next_run_at >= NOW()
+                GROUP BY 
+                    activity_id
+            ) AS next_schedule', 'next_schedule.activity_id = activities.id', 'left')
+
+            // Filter berdasarkan user yang login
+            ->where('activities.created_by', $userId)
+
+            ->orderBy('activities.id', 'ASC')
+            ->findAll();
     }
+
 
 }

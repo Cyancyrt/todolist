@@ -24,7 +24,7 @@
         <?php if ($session->getFlashdata('error')): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"><?php echo $this->session->getFlashdata('error'); ?></div>
         <?php endif; ?>
-        <?php echo form_open('/login', ['class' => 'space-y-4']); ?>
+        <?php echo form_open('/auth', ['class' => 'space-y-4']); ?>
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                 <input type="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" id="email" name="email" value="<?php echo set_value('email'); ?>" required>
@@ -41,7 +41,6 @@
         <?php echo form_close(); ?>
         <div class="text-center mt-4">
             <p class="text-sm text-gray-600">Belum punya akun? <a href="<?php echo site_url('auth/register'); ?>" class="text-blue-600 hover:text-blue-500">Daftar di sini</a></p>
-            <p class="text-sm text-gray-600"><a href="#" class="text-gray-500 hover:text-gray-700">Lupa Password?</a></p>
         </div>
     </div>
 </body>

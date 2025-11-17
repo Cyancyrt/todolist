@@ -17,6 +17,7 @@ class CreateTask extends Migration
             'priority'    => ['type' => 'ENUM', 'constraint' => ['low', 'medium', 'high'], 'default' => 'medium'],
             'status'      => ['type' => 'ENUM', 'constraint' => ['upcoming', 'done', 'missed'], 'default' => 'upcoming'],
             'created_at'  => ['type' => 'DATETIME'],
+            'updated_at'  => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addKey('id', true);
         $this->forge->addForeignKey('activity_id', 'activities', 'id', 'CASCADE', 'CASCADE');

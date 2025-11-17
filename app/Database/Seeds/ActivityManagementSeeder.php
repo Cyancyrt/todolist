@@ -50,7 +50,7 @@ class ActivityManagementSeeder extends Seeder
 
         // === NOTES ===
         $this->db->table('notes')->insert([
-            'user_id' => 2,
+            'user_id' => 1,
             'activity_id' => 1,
             'title' => 'Persiapan Gotong Royong',
             'content' => 'Pastikan semua peralatan lengkap.',
@@ -64,6 +64,25 @@ class ActivityManagementSeeder extends Seeder
             'role' => 'member',
             'joined_at' => date('Y-m-d H:i:s'),
         ]);
+
+        // === ACTIVITY SCHEDULE ===
+        $data = [
+            [
+                'activity_id' => 1,
+                'next_run_at' => '2025-11-15 07:00:00',
+                'last_run_at' => '2025-11-08 07:00:00',
+                'run_count'   => 3,
+            ],
+            [
+                'activity_id' => 1,
+                'next_run_at' => '2025-11-22 07:00:00',
+                'last_run_at' => null,
+                'run_count'   => 0,
+            ],
+        ];
+
+        // Masukkan data ke tabel activity_schedule
+        $this->db->table('activity_schedule')->insertBatch($data);
 
         // === ACTIVITY LOGS ===
         $this->db->table('activity_logs')->insert([

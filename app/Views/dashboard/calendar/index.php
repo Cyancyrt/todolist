@@ -21,10 +21,22 @@
       </button>
     </div>
 
-    <div class="flex w-full sm:w-auto justify-center sm:justify-end gap-2">
-      <button id="monthlyView" class="px-4 py-2 rounded-lg bg-blue-600 text-white shadow hover:bg-blue-700 transition text-sm sm:text-base">Monthly</button>
-      <button id="weeklyView" class="px-4 py-2 rounded-lg bg-white text-gray-700 shadow hover:bg-gray-100 transition text-sm sm:text-base">Weekly</button>
-    </div>
+  <div class="flex w-full sm:w-auto justify-center sm:justify-end gap-2">
+    <button id="monthlyView"
+      class="px-4 py-2 rounded-lg bg-blue-600 text-white shadow hover:bg-blue-700 transition text-sm sm:text-base">
+      Monthly
+    </button>
+    <button
+      class="px-4 py-2 rounded-lg bg-gray-300 text-gray-500 shadow cursor-not-allowed text-sm sm:text-base relative group"
+      disabled>
+      Weekly
+      <span
+        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+        Coming Soon
+      </span>
+    </button>
+  </div>
+
   </div>
 
   <!-- Legend -->
@@ -102,27 +114,20 @@
   const prevMonthBtn = document.getElementById('prevMonth');
   const nextMonthBtn = document.getElementById('nextMonth');
   let currentDate = new Date();
+  let tasks = {};
 
-  function generateDummyTasks(year, month) {
-    const tasks = {};
-    const days = new Date(year, month + 1, 0).getDate();
-    const now = new Date();
-    for (let i = 1; i <= days; i++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      const numTasks = Math.floor(Math.random() * 3);
-      if (numTasks) {
-        tasks[dateStr] = [];
-        for (let j = 0; j < numTasks; j++) {
-          const priority = ['low', 'medium', 'high'][Math.floor(Math.random() * 3)];
-          const status = ['upcoming','completed','overdue'][Math.floor(Math.random() * 3)];
-          tasks[dateStr].push({ name:`Task ${j+1}`, priority, time:'08:00', status });
-        }
-      }
+  async function fetchTasks(year, month) {
+    try {
+      const res = await fetch(`calendar/fetch?year=${year}&month=${month + 1}`);
+      if (!res.ok) throw new Error('Failed to fetch tasks');
+      tasks = await res.json();
+      renderCalendar(currentDate);
+    } catch (err) {
+      console.error(err);
+      tasks = {};
+      renderCalendar(currentDate);
     }
-    return tasks;
   }
-
-  let tasks = generateDummyTasks(currentDate.getFullYear(), currentDate.getMonth());
 
   function renderCalendar(date) {
     const y = date.getFullYear();
@@ -154,7 +159,7 @@
           el.className = `task-card ${t.priority} ${t.status}`;
           const badge = t.status === 'completed' ? 'Done' : t.status === 'overdue' ? 'Late' : 'Soon';
           el.innerHTML = `
-            <span>${t.name}</span>
+            <span>${t.name.length > 8 ? t.name.substring(0, 5) + '…' : t.name}</span>
             <div class="flex items-center">
               <div class="priority-icon">
                 ${t.priority === 'high' ? `<div style="height:5px"></div><div style="height:9px"></div><div style="height:13px"></div>` :
@@ -166,12 +171,21 @@
           d.appendChild(el);
         });
       }
+
       calendarDays.appendChild(d);
     }
   }
 
-  prevMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); tasks = generateDummyTasks(currentDate.getFullYear(), currentDate.getMonth()); renderCalendar(currentDate); };
-  nextMonthBtn.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); tasks = generateDummyTasks(currentDate.getFullYear(), currentDate.getMonth()); renderCalendar(currentDate); };
-  renderCalendar(currentDate);
+  prevMonthBtn.onclick = () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    fetchTasks(currentDate.getFullYear(), currentDate.getMonth());
+  };
+  nextMonthBtn.onclick = () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    fetchTasks(currentDate.getFullYear(), currentDate.getMonth());
+  };
+
+  fetchTasks(currentDate.getFullYear(), currentDate.getMonth());
 </script>
+
 <?= $this->endSection() ?>

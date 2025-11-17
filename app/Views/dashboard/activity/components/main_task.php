@@ -36,10 +36,7 @@
                 foreach ($task['tasks'] as $t) :?>
                 <li
                     class="sub-task cursor-pointer group border border-gray-200 rounded-lg p-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 hover:shadow-md transition-all duration-200"
-                    data-name="<?= esc($t['title']) ?>"
-                    data-desc="<?= esc($t['description']) ?>"
-                    data-deadline="<?= esc((new DateTime($t['due_time']))->format('M j, Y \a\t g:i A')) ?>"
-                    data-status="<?= esc($t['status']) ?>"
+                    data-id="<?= esc($t['id'])?>"
                     >
                    <div class="flex justify-between items-center">
                         <span class="text-sm font-medium text-gray-800"><?= esc($t['title']) ?></span>

@@ -15,7 +15,7 @@
                 </svg>
                 <span class="planning-tooltip" id="createTooltip">Create New Personal Activities</span>
             </a>
-            <div class="planning-icon burger" id="viewAllBtn" onclick="alert('Navigating to View All Tasks Page!')">
+            <div class="planning-icon burger" id="viewAllBtn">
                 <svg class="w-6 h-6 text-green-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                 </svg>
@@ -54,11 +54,29 @@
             </button>
             </div>
         </div>
-        <ul class="space-y-4">
-            <?php foreach ($data as $task) : ?>
-            <?= view('dashboard/activity/components/main_task', ['task' => $task]); ?>
-            <?php endforeach; ?>
-        </ul>
+        <?php if (empty($data)): ?>
+            <!-- Empty State Message -->
+            <div class="text-center py-12">
+                <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0 0l-2 2m2-2l2 2"></path>
+                </svg>
+                <p class="text-lg font-medium text-gray-600 mb-2">You don't have any activities yet, create one to stay productive!</p>
+                <p class="text-sm text-gray-500">Get started by adding your first activity and boost your productivity today.</p>
+                <a href="<?= base_url('dashboard/activity/create') ?>" class="inline-flex items-center mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Create Your First Activity
+                </a>
+            </div>
+        <?php else: ?>
+            <ul class="space-y-4">
+                <?php foreach ($data as $task) : ?>
+                <?= view('dashboard/activity/components/main_task', ['task' => $task]); ?>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
     </div>
     <?= view('dashboard/activity/components/modal_task') ?>
 </main>

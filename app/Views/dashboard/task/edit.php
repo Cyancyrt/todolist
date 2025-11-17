@@ -13,6 +13,7 @@
   </div>
   <form id="task-form" action="<?= base_url('dashboard/task/update/' . esc($task['id'])) ?>" method="POST">
     <?= csrf_field() ?>
+    <input type="hidden" name="_method" value="PUT"> <!-- Spoofing method -->
     <input type="hidden" name="activity_id" value="<?= esc($ActivityId) ?>">
     <div id="paper-container" class="w-full max-w-6xl grid grid-flow-row place-items-center gap-6 transition-all">
       <div class="paper p-6 relative bg-white shadow-lg rounded-2xl transition-all duration-300 transform scale-100">
@@ -23,7 +24,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
           </svg>
         </button>
-        <input type="text" name="titles[]" placeholder="Judul Task" value="<?= esc($task['title'] ?? '') ?>" class="w-full text-2xl font-semibold border-none outline-none bg-transparent mb-4 placeholder-gray-400" />
+        <input type="text" name="titles[]" placeholder="Judul Task" value="<?= old('titles.0', esc($task['title'] ?? '')) ?>"  class="w-full text-2xl font-semibold border-none outline-none bg-transparent mb-4 placeholder-gray-400" />
         <div id="editorjs" class="editor-container mb-6"></div>
 
         <div class="flex flex-col sm:flex-row gap-4 mb-6 flex-wrap items-center justify-start">
@@ -32,7 +33,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
             <span id="due-time-text" class="text-gray-700 text-sm sm:text-base truncate">Pilih Tanggal & Waktu</span>
-            <input type="hidden" id="due-time-value" name="due_time"  <?= esc($task['due_time'] ?? 'Pilih Tanggal & Waktu') ?>>
+            <input type="hidden" id="due-time-value" name="due_time" value="<?= esc(old('due_time', esc($task['due_time'] ?? ''))) ?>">
           </div>
       <!-- Prioritas -->
       <button type="button" id="priority-btn" class="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 min-w-0 flex-1 sm:flex-none">
@@ -71,7 +72,7 @@
           </div>
         </div>
         <!-- Hidden input untuk form -->
-        <input type="hidden" name="contents[]" class="editor-content-input">
+        <input type="hidden" name="contents[]" data-original='<?= esc($task['description'] ?? '{}', 'attr') ?>' class="editor-content-input">
       </div>
     </div>
 
@@ -120,8 +121,11 @@
     editors.push(editor);
   }
 
- initEditor('editorjs', `<?= esc($task['description'] ?? '', 'js') ?>`);
-  // ➕ Tambah note baru
+ const existingDesc = <?= json_encode($task['description'] ?? null) ?>;
+initEditor('editorjs', existingDesc);
+
+</script>
+<script>
 document.getElementById('add-paper-btn').addEventListener('click', () => {
   const container = document.getElementById('paper-container');
   const newId = `editorjs-${Date.now()}`;
@@ -175,18 +179,30 @@ document.getElementById('add-paper-btn').addEventListener('click', () => {
   });
 
   // 📨 Saat form disubmit
-  document.getElementById('create-btn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const form = document.getElementById('task-form');
-    const contentInputs = document.querySelectorAll('.editor-content-input');
+document.getElementById('create-btn').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const form = document.getElementById('task-form');
+  const contentInputs = document.querySelectorAll('.editor-content-input');
 
-    for (let i = 0; i < editors.length; i++) {
+  for (let i = 0; i < editors.length; i++) {
+    try {
       const output = await editors[i].save();
-      contentInputs[i].value = JSON.stringify(output);
+      if (output && output.blocks && output.blocks.length > 0) {
+        contentInputs[i].value = JSON.stringify(output);
+      } else {
+        // fallback ke value lama kalau tidak ada perubahan
+        const existingValue = contentInputs[i].getAttribute("data-original") || "{}";
+        contentInputs[i].value = existingValue;
+      }
+    } catch (err) {
+      console.warn(`Editor ${i} gagal disimpan, pakai data lama`);
+      const existingValue = contentInputs[i].getAttribute("data-original") || "{}";
+      contentInputs[i].value = existingValue;
     }
+  }
 
-    form.submit();
-  });
+  form.submit();
+});
 </script>
 <script>
 // Benerin Flatpickr untuk tanggal (pastikan CDN dimuat)
@@ -212,10 +228,13 @@ document.getElementById('close-priority-modal').addEventListener('click', () => 
 
 // Default state saat pertama kali halaman dimuat
 window.addEventListener('DOMContentLoaded', () => {
-  const defaultValue = 'low';
-  document.getElementById('priority-value').value = defaultValue;
-  document.getElementById('priority-text').textContent = 'Rendah';
-  document.getElementById('priority-icon').style.color = 'green';
+  const currentPriority = "<?= esc($task['priority'] ?? 'low') ?>";
+  const text = currentPriority === 'high' ? 'Tinggi' : currentPriority === 'medium' ? 'Sedang' : 'Rendah';
+  const color = currentPriority === 'high' ? 'red' : currentPriority === 'medium' ? 'gold' : 'green';
+
+  document.getElementById('priority-value').value = currentPriority;
+  document.getElementById('priority-text').textContent = text;
+  document.getElementById('priority-icon').style.color = color;
 });
 
 // Saat user memilih salah satu prioritas

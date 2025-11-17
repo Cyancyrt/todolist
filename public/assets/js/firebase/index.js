@@ -26,7 +26,6 @@ export async function getNotificationToken() {
   try {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      console.warn("Notification Permission Denied");
       return null;
     }
 
@@ -39,11 +38,9 @@ export async function getNotificationToken() {
     });
 
     if (!token) {
-      console.warn("No FCM token retrieved");
       return null;
     }
 
-    console.log("✅ FCM Token:", token);
     return token;
   } catch (err) {
     console.error("❌ Failed to get notification token:", err);

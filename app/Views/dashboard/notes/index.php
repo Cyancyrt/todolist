@@ -50,53 +50,89 @@
   </div>
 
   <!-- Note List -->
-  <div class="bg-white p-6 rounded-lg shadow-md">
-    <h3 class="text-lg font-medium text-gray-700 mb-4">Your Notes</h3>
-    <ul id="noteList" class="space-y-4">
-      <!-- Example Note 1 -->
-      <li class="note-item group relative flex justify-between items-center py-3 border-b border-gray-200 hover:bg-blue-50 transition-all duration-200 cursor-pointer" data-id="1">
-        <div class="flex items-start space-x-3">
-          <input type="checkbox" class="note-checkbox hidden mt-1" />
-          <div>
-            <h4 class="text-lg font-semibold text-gray-800">Resep Masak Nasi Goreng</h4>
-            <p class="text-sm text-gray-600">Relasi: Task memasak pukul 12:00. Bahan: nasi, telur, bawang...</p>
+<div class="bg-white p-6 rounded-lg shadow-md">
+  <h3 class="text-lg font-medium text-gray-700 mb-4 flex items-center space-x-2">
+    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    <span>Your Notes</span>
+  </h3>
+  <ul id="noteList" class="space-y-4">
+    <?php if (empty($notes)): ?>
+        <!-- Empty State Message -->
+        <div class="text-center py-12">
+            <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0 0l-2 2m2-2l2 2"></path>
+            </svg>
+            <p class="text-lg font-medium text-gray-600 mb-2">You don't have any notes yet, create one to stay productive!</p>
+            <p class="text-sm text-gray-500">Get started by jotting down your first note and organize your thoughts today.</p>
+            <a href="<?= base_url('dashboard/notes/create') ?>" class="inline-flex items-center mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Create Your First Note
+            </a>
+        </div>
+    <?php else: ?>
+        <?php foreach ($notes as $note) { ?>
+        <li class="note-item group relative flex justify-between items-center py-4 px-4 border-b border-gray-200 hover:bg-blue-50 transition-all duration-200 cursor-pointer rounded-lg" data-id="<?= $note['id'] ?>">
+          <div class="flex items-start space-x-3 flex-1">
+            <input type="checkbox" class="note-checkbox hidden mt-1" />
+            <div class="flex-1 min-w-0">
+              <h4 class="text-lg font-semibold text-gray-800 truncate"><?= esc($note['title']) ?></h4>
+              <p class="text-sm text-gray-600 mt-1 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                <?= truncate_text($note['content'], 100) ?>
+              </p>
+              <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                <span class="flex items-center space-x-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Created: <?= date('d M Y, H:i', strtotime($note['created_at'])); ?></span>
+                </span>
+                <?php if (isset($note['updated_at']) && $note['updated_at'] != $note['created_at']): ?>
+                <span class="flex items-center space-x-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                  <span>Updated: <?= date('d M Y, H:i', strtotime($note['updated_at'])); ?></span>
+                </span>
+                <?php endif; ?>
+                <?php if (isset($note['activity_name'])): ?>
+                <span class="flex items-center space-x-1">
+                  <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Activity: <?= esc($note['activity_name']) ?></span>
+                </span>
+                <?php endif; ?>
+              </div>
+            </div>
           </div>
-        </div>
-        <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 3h6a1 1 0 011 1v1H8V4a1 1 0 011-1z" />
-          </svg>
-        </button>
-        <div class="absolute top-3 right-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-          </svg>
-        </div>
-      </li>
+          <div class="flex items-center space-x-2">
+            <a href="<?= base_url('dashboard/notes/edit/' . esc($note['id'])) ?>" 
+                class="absolute top-3 right-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </a>
+            <form action="<?= base_url('dashboard/notes/delete/' . $note['id']) ?>" method="post" class="deleteForm">
+              <?= csrf_field() ?>
+              <button type="button" class="delete-btn text-red-500 hover:text-red-700 transition-colors p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 3h6a1 1 0 011 1v1H8V4a1 1 0 011-1z" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </li>
+        <?php } ?>
+    <?php endif; ?>
+  </ul>
+</div>
 
-      <!-- Example Note 2 -->
-      <li class="note-item group relative flex justify-between items-center py-3 border-b border-gray-200 hover:bg-blue-50 transition-all duration-200 cursor-pointer" data-id="2">
-        <div class="flex items-start space-x-3">
-          <input type="checkbox" class="note-checkbox hidden mt-1" />
-          <div>
-            <h4 class="text-lg font-semibold text-gray-800">Prosedur Gotong Royong</h4>
-            <p class="text-sm text-gray-600">Relasi: Social activity. Langkah: Kumpul di lapangan, bagi tugas...</p>
-          </div>
-        </div>
-        <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 3h6a1 1 0 011 1v1H8V4a1 1 0 011-1z" />
-          </svg>
-        </button>
-        <div class="absolute top-3 right-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-          </svg>
-        </div>
-      </li>
-    </ul>
-  </div>
-</main>
 
 <!-- Modal -->
 <div id="deleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
@@ -114,6 +150,7 @@
     </div>
   </div>
 </div>
+
 
 
 <script src="<?= base_url('assets/js/main.js') ?>" type="module"></script>
@@ -166,6 +203,41 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
+<script>
+  const deleteModal = document.getElementById('deleteModal');
+  const modalContent = document.getElementById('modalContent');
+  const cancelDelete = document.getElementById('cancelDelete');
+  const confirmDelete = document.getElementById('confirmDelete');
+  let currentForm = null; // Form yang sedang ingin dihapus
+
+  // Saat klik tombol delete
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentForm = e.target.closest('form');
+      deleteModal.classList.remove('hidden');
+      setTimeout(() => {
+        modalContent.classList.remove('opacity-0', 'scale-95');
+        modalContent.classList.add('opacity-100', 'scale-100');
+      }, 10);
+    });
+  });
+
+  // Batal hapus
+  cancelDelete.addEventListener('click', () => {
+    modalContent.classList.add('opacity-0', 'scale-95');
+    setTimeout(() => {
+      deleteModal.classList.add('hidden');
+    }, 200);
+  });
+
+  // Konfirmasi hapus
+  confirmDelete.addEventListener('click', () => {
+    if (currentForm) currentForm.submit();
+  });
+</script>
 
 
 <?= $this->endSection() ?>
+
+

@@ -7,11 +7,10 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class ActivityController extends BaseController
 {
-    protected $activityModel, $scheduleModel,$taskModel, $user, $db;
+    protected $activityModel, $scheduleModel,$taskModel, $user, $db, $session;
 
     public function __construct(){
-        helper(['form']);
-        $this->user = session()->get('user');
+        helper(['form', 'session']);
         $this->activityModel = new \App\Models\ActivitiesModel();
         $this->scheduleModel = new \App\Models\ActivityScheduleModel();
         $this->taskModel = new \App\Models\TasksModel();
@@ -23,7 +22,7 @@ class ActivityController extends BaseController
     }
     public function index()
     {
-        $data = $this->activityModel->getAllWithRelations();
+        $data = $this->activityModel->getAllWithRelations(session('user_id'));
         foreach ($data as &$activity) {
             $activity['tasks'] = $this->taskModel->getTasksByActivity($activity['id']);
         }
@@ -46,7 +45,6 @@ class ActivityController extends BaseController
             'created_by' => 'required|integer'
         ];
         if (!$this->validate($rules)) {
-            dd($this->validator->getErrors());
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         try {

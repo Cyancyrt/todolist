@@ -14,7 +14,7 @@ class AuthController extends BaseController
      */
     public function __construct()
     {
-        helper(['url', 'form']);
+        helper(['url', 'form', 'session']);
         $this->userModel = new UsersModel();
         $this->session = session();
         $this->validation = \Config\Services::validation();
@@ -116,5 +116,56 @@ class AuthController extends BaseController
             return redirect()->to('/'); // Ganti dengan file login Anda view('auth/login.php');
         }
         return view('auth/register.php');
+    }
+    public function editProfile($id)
+    {
+        $user = $this->userModel->find($id);
+        if (!$user) {
+            return redirect()->back()->with('error', 'User tidak ditemukan.');
+        }
+        return view('dashboard/profile/edit', ['user' => $user]);
+    }
+    public function updateProfile($id)
+    {
+        $user = $this->userModel->find($id);
+        if (!$user) {
+            return redirect()->back()->with('error', 'User tidak ditemukan.');
+        }
+
+        $rules = [
+            'name' => [
+                'rules' => 'required',
+                'errors' => [
+                    'required' => 'Nama harus diisi.'
+                ],
+            ],
+            'email' => [
+                'rules' => 'required|valid_email',
+                'errors' => [
+                    'required' => 'Email harus diisi.',
+                ]
+            ]
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        try {
+            $data = [
+                'name' => $this->request->getPost('name'),
+                'email' => $this->request->getPost('email'),
+            ];
+            $success = $this->userModel->update($id, $data);
+            if ($success) {
+                $this->session->getFlashdata('success', 'Data berhasil diperbarui.');
+            } else {
+                $this->session->getFlashdata('error', 'Data gagal diperbarui.');
+            }
+        } catch (\Throwable $th) {
+            dd($th);
+            $this->session->getFlashdata('error', 'Terjadi kesalahan pada server: ' . $th->getMessage());
+        }
+        return redirect()->to('/dashboard');
     }
 }

@@ -55,4 +55,23 @@ class TasksModel extends Model
     {
         return $this->where('activity_id', $activityId)->findAll();
     }
+    public function getActivitybyTask($taskId)
+    {
+        $task = $this->find($taskId);
+        if ($task) {
+            $activityModel = new \App\Models\ActivitiesModel();
+            return $activityModel->find($task['activity_id']);
+        }
+        return null;
+    }
+    public function getTasksByMonth($year, $month)
+    {
+        $start = date("$year-$month-01 00:00:00");
+        $end = date("$year-$month-t 23:59:59");
+
+        return $this->where('due_time >=', $start)
+                    ->where('due_time <=', $end)
+                    ->orderBy('due_time', 'ASC')
+                    ->findAll();
+    }
 }
