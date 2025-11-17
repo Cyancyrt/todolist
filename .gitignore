@@ -18,3 +18,4 @@ yarn-error.log*
 
 vendor/
 app/Config/service-account-firebase.json
+*service-account*.json
