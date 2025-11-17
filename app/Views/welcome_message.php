@@ -27,7 +27,7 @@
                 Kelola Waktu & Aktivitas Anda dengan <span class="text-blue-600">Efisien</span>
             </h1>
             <p class="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                TimeMaster: Rencanakan, Lacak, Analisis. Tingkatkan produktivitas Anda hari ini!
+                RoutinePath: Rencanakan, Lacak, Analisis. Tingkatkan produktivitas Anda hari ini!
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 mb-8">
                 <a href="#features" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
