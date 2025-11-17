@@ -1,7 +1,7 @@
 <!-- Header -->
 <header class="bg-white shadow-md p-4 flex justify-between items-center">
     <div class="flex items-center">
-        <h1 class="text-2xl font-bold text-blue-600">RoutineHub</h1>
+        <h1 class="text-2xl font-bold text-blue-600">RoutinePath</h1>
     </div>
     <div class="flex items-center space-x-6">
         <!-- Real-Time Clock -->
