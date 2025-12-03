@@ -16,6 +16,8 @@ class CreateActivityParticipants extends Migration
             'joined_at'   => ['type' => 'DATETIME'],
         ]);
         $this->forge->addKey('id', true);
+        $this->forge->addKey('activity_id'); // Mempercepat pencarian peserta per aktivitas
+        $this->forge->addKey('user_id');
         $this->forge->addForeignKey('activity_id', 'activities', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('activity_participants');

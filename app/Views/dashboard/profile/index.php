@@ -16,47 +16,47 @@
     </div>
 
     <!-- Informasi Profil -->
-    <div class="space-y-6">
-      <h3 class="flex items-center space-x-2 text-lg font-semibold text-gray-700">
-        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <span>Detail Profil</span>
-      </h3>
-      
-      <!-- Nama -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Nama Lengkap
-        </label>
-        <p class="text-gray-900 text-base">
-          <?= esc($user['name'] ?? 'Tidak tersedia') ?>
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Nama lengkap Anda yang terdaftar di akun ini.</p>
-      </div>
+<div class="space-y-6">
+  <h3 class="flex items-center space-x-2 text-lg font-semibold text-gray-700">
+    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+    <span>Detail Profil</span>
+  </h3>
+  
+  <!-- Nama -->
+  <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 border-opacity-50">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      Nama Lengkap
+    </label>
+    <p class="text-gray-900 text-base">
+      <?= esc($user['name'] ?? 'Tidak tersedia') ?>
+    </p>
+    <p class="text-xs text-gray-500 mt-1">Nama lengkap Anda yang terdaftar di akun ini.</p>
+  </div>
 
-      <!-- Username -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Role
-        </label>
-        <p class="text-gray-900 text-base">
-          <?= esc($user['role'] ?? 'Tidak tersedia') ?>
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Role Anda untuk identifikasi.</p>
-      </div>
+  <!-- Username -->
+  <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 border-opacity-50">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      Role
+    </label>
+    <p class="text-gray-900 text-base">
+      <?= esc($user['role'] ?? 'Tidak tersedia') ?>
+    </p>
+    <p class="text-xs text-gray-500 mt-1">Role Anda untuk identifikasi.</p>
+  </div>
 
-      <!-- Email -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Email
-        </label>
-        <p class="text-gray-900 text-base">
-          <?= esc($user['email'] ?? 'Tidak tersedia') ?>
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Alamat email utama Anda untuk notifikasi dan komunikasi.</p>
-      </div>
-    </div>
+  <!-- Email -->
+  <div class="bg-gray-50 p-4 rounded-lg border border-black-200 border-opacity-50">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      Email
+    </label>
+    <p class="text-gray-900 text-base">
+      <?= esc($user['email'] ?? 'Tidak tersedia') ?>
+    </p>
+    <p class="text-xs text-gray-500 mt-1">Alamat email utama Anda untuk notifikasi dan komunikasi.</p>
+  </div>
+</div>
 
     <!-- Tombol Aksi (Opsional, jika ingin edit) -->
     <div class="pt-4 flex justify-center">

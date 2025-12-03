@@ -20,7 +20,7 @@
             <p class="text-2xl font-bold text-blue-600">
                 <?= esc($socialWeek) ?> Social Activities
             </p>
-            <p class="text-sm text-gray-500">Gotong royong scheduled</p>
+            <p class="text-sm text-gray-500"><?= $activityDummy ?? 'Nothing yet to be ' ?> scheduled</p>
         </div>
 
         <div class="bg-white p-4 rounded-lg shadow-md">
@@ -56,75 +56,151 @@
     </div>
 
     <!-- Tasks and Notes Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+ <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- Real-Time To-Do List -->
-        <div class="bg-white p-4 rounded-lg shadow-md">
-            <h3 class="text-lg font-medium text-gray-700 mb-4">Real-Time Tasks</h3>
-            <?php if (!empty($tasks)): ?>
+    <!-- Real-Time To-Do List -->
+    <div class="bg-white p-4 rounded-lg shadow-md">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Real-Time Tasks</h3>
+        <?php if (!empty($tasks)): ?>
+            <div class="max-h-64 overflow-y-auto"> <!-- Tambahkan wrapper dengan tinggi maksimal dan scroll -->
                 <ul class="space-y-2">
                     <?php foreach ($tasks as $task): ?>
                         <li class="flex justify-between items-center p-2 bg-blue-50 rounded">
                             <div>
                                 <span class="font-medium"><?= esc($task['title']) ?></span>
-                                <?php if (!empty($task['due_time'])): ?>
-                                    <span class="text-sm text-gray-600"> - <?= date('H:i A', strtotime($task['due_time'])) ?></span>
+                               <?php if (!empty($task['due_time'])): ?>
+                                    <span class="text-sm text-gray-600">
+                                        - <?= date('d M Y, H:i A', strtotime($task['due_time'])) ?>
+                                    </span>
                                 <?php endif; ?>
-                              <?php if (!empty($task['description_text'])): ?>
-                                <div class="text-sm text-gray-500 mt-1">
-                                    <?= esc($task['description_text']) ?>
-                                </div>
-                            <?php endif; ?>
+                                <?php if (!empty($task['description_text'])): ?>
+                                    <div class="text-sm text-gray-500 mt-1">
+                                        <?= esc($task['description_text']) ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <form action="<?= base_url('tasks/complete/'.$task['id']) ?>" method="post">
+                            <form action="<?= base_url('dashboard/task/complete/'.$task['id']) ?>" method="post">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600">
-                                    Done
-                                </button>
+                                <input type="hidden" name="_method" value="PUT">
+                                <?php if ($task['status'] === 'done'): ?>
+                                    <button 
+                                        type="button" 
+                                        class="bg-red-500 text-white px-2 py-1 rounded text-sm opacity-60 cursor-not-allowed"
+                                        disabled
+                                    >
+                                        Completed
+                                    </button>
+                                <?php else: ?>
+                                    <button 
+                                        type="submit" 
+                                        class="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
+                                    >
+                                        Done
+                                    </button>
+                                <?php endif; ?>
                             </form>
                         </li>
                     <?php endforeach; ?>
                 </ul>
-            <?php else: ?>
-                <p class="text-gray-500 text-center py-4">No tasks yet for today.</p>
-            <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <p class="text-gray-500 text-center py-4">No tasks yet for today.</p>
+        <?php endif; ?>
+    </div>
 
-            <a href="<?= base_url('tasks/create') ?>" class="mt-4 block text-center bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
-                Add New Task
-            </a>
-        </div>
+    <!-- Notes and Activities -->
+    <div class="bg-white p-4 rounded-lg shadow-md">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Notes & Activities</h3>
 
-        <!-- Notes and Activities -->
-        <div class="bg-white p-4 rounded-lg shadow-md">
-            <h3 class="text-lg font-medium text-gray-700 mb-4">Notes & Activities</h3>
-
-            <?php if (!empty($notes)): ?>
+        <?php if (!empty($notes)): ?>
+            <div class="max-h-64 overflow-y-auto"> <!-- Tambahkan wrapper dengan tinggi maksimal dan scroll -->
                 <div class="space-y-4">
                     <?php foreach ($notes as $note): ?>
                         <div class="p-3 bg-gray-50 rounded">
                             <h4 class="font-medium"><?= esc($note['title']) ?></h4>
                             <p class="text-sm text-gray-600">
-                                <?= nl2br(esc($note['description'])) ?>
+                                <?= nl2br(esc($note['content'])) ?>
                             </p>
                         </div>
                     <?php endforeach; ?>
                 </div>
-            <?php else: ?>
-                <p class="text-gray-500 text-center py-4">No notes available.</p>
-            <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <p class="text-gray-500 text-center py-4">No notes available.</p>
+        <?php endif; ?>
 
-            <a href="<?= base_url('notes/create') ?>" class="mt-4 block text-center bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
-                Add Note
-            </a>
-        </div>
+        <a href="<?= base_url('dashboard/notes/create') ?>" class="mt-4 block text-center bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
+            Add Note
+        </a>
     </div>
-</main>
+</div>
 
+</main>
+<div id="calendarModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeCalendarModal()"></div>
+
+  <div class="fixed inset-0 z-10 overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+      
+      <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+        
+        <div class="bg-blue-600 px-4 py-3 sm:px-6 flex justify-between items-center">
+          <h3 class="text-lg font-semibold leading-6 text-white" id="modalDateTitle">Detail Tanggal</h3>
+          <button type="button" class="text-blue-100 hover:text-white focus:outline-none" onclick="closeCalendarModal()">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="px-4 py-5 sm:p-6">
+          <div id="modalContent" class="space-y-4">
+            <p class="text-gray-500 text-center">Memuat data...</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+          <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" onclick="closeCalendarModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div id="calendarModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeCalendarModal()"></div>
+
+  <div class="fixed inset-0 z-10 overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+      
+      <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+        
+        <div class="bg-blue-600 px-4 py-3 sm:px-6 flex justify-between items-center">
+          <h3 class="text-lg font-semibold leading-6 text-white" id="modalDateTitle">Detail Tanggal</h3>
+          <button type="button" class="text-blue-100 hover:text-white focus:outline-none" onclick="closeCalendarModal()">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="px-4 py-5 sm:p-6">
+          <div id="modalContent" class="space-y-4">
+            <p class="text-gray-500 text-center">Memuat data...</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+          <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" onclick="closeCalendarModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <?php $this->endSection(); ?>
 
 <?php $this->section('scripts'); ?>
 <script>
-    const tasks = <?= $calendarTasks ?? '[]' ?>;
+    // Pastikan data ini valid JSON
+    const calendarEvents = <?= !empty($calendarTasks) ? $calendarTasks : '[]' ?>;
 </script>
 <script src="<?= base_url('assets/js/calendar.js') ?>"></script>
 <?php $this->endSection(); ?>

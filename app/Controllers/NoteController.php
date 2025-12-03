@@ -77,7 +77,7 @@ class NoteController extends BaseController
             // --- 4. Simpan data ke database ---
             $this->notesModel->insert($data);
 
-            return redirect()->back()
+            return redirect()->to(base_url('dashboard/notes'))
                 ->with('success', 'Catatan berhasil disimpan.');
         } catch (\Exception $e) {
             dd($e);
@@ -137,7 +137,7 @@ class NoteController extends BaseController
             // --- 5. Update data menggunakan Model ---
             $this->notesModel->update($id, $data);
 
-            return redirect()->back()
+            return redirect()->to(base_url('dashboard/notes'))
                 ->with('success', 'Catatan berhasil diperbarui.');
         } catch (\Exception $e) {
             // --- 6. Tangani dan log error ---
@@ -164,4 +164,42 @@ class NoteController extends BaseController
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus catatan.');
         }
     }
+    public function bulkDelete()
+    {
+        // Ambil data JSON dari body request
+        $input = $this->request->getJSON(true); // true = associative array
+        $ids = $input['ids'] ?? [];
+
+        if (!is_array($ids) || empty($ids)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Tidak ada data yang dipilih.'
+            ]);
+        }
+
+        // Filter: hanya ambil ID dalam bentuk integer
+        $ids = array_map('intval', $ids);
+
+        try {
+            $this->notesModel
+                ->whereIn('id', $ids)
+                ->where('user_id', session()->get('user_id'))
+                ->delete();
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Catatan berhasil dihapus.',
+                'deleted_count' => count($ids)
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Bulk delete notes failed: ' . $e->getMessage());
+
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menghapus catatan.'
+            ]);
+        }
+    }
+
+
 }

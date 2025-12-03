@@ -72,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     openSubModal(subTask, id);
   });
 });
+
 // Buka modal dengan data
 async function openSubModal(taskElement, id) {
   const modal = document.getElementById("subActivityModal");
@@ -102,23 +103,21 @@ async function openSubModal(taskElement, id) {
     document.getElementById("subStatus").textContent = data.status;
     const editBtn = document.getElementById("editSubtaskBtn");
     if (editBtn) {
-      editBtn.href = `/dashboard/task/edit/${id}`;
+      editBtn.href = `${base_url}/dashboard/task/edit/${id}`;
     }
 
     // --- Update status tombol ---
     const normStatus = (data.status || "").toLowerCase();
-    if (normStatus === "done" || normStatus === "completed") {
-      form.action = `#`;
-      btn.textContent = "Marked as Missed";
-      btn.classList.remove("bg-green-600", "hover:bg-green-700");
-      btn.classList.add("bg-red-600", "hover:bg-red-700");
-      btn.disabled = true;
+    if (normStatus === "done" || normStatus === "missed") {
+      btn.textContent = "Sudah Terlewat (Missed)";
+      btn.className =
+        "cursor-default pointer-events-none bg-gray-100 text-gray-600 px-4 py-3 rounded-lg w-full text-center border border-gray-300 font-medium";
+      form.action = "";
     } else {
       form.action = `task/complete/${data.id}`;
       btn.textContent = "Mark as Completed";
-      btn.classList.remove("bg-red-600", "hover:bg-red-700");
-      btn.classList.add("bg-green-600", "hover:bg-green-700");
-      btn.disabled = false;
+      btn.className =
+        "bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg w-full font-medium";
     }
 
     // --- Update warna status indicator ---
@@ -202,8 +201,23 @@ function updateTaskStatus(taskElement, newStatus) {
 
 function closeModal() {
   const modal = document.getElementById("subActivityModal");
+
   modal.querySelector("div").classList.add("scale-95");
   setTimeout(() => modal.classList.add("hidden"), 300);
+
+  // HANCURKAN EditorJS instance agar bisa dibuat ulang
+  if (modal._editorInstance) {
+    try {
+      modal._editorInstance.destroy();
+    } catch (e) {
+      console.warn("Failed to destroy editor:", e);
+    }
+    modal._editorInstance = null;
+  }
+
+  // Bersihkan container editor (penting!)
+  const holder = document.getElementById("editorjs-checklist");
+  holder.innerHTML = "";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -221,5 +235,54 @@ document.addEventListener("DOMContentLoaded", () => {
     const taskElement = modal.dataset.taskElement;
     if (taskElement) updateTaskStatus(taskElement, "Pending");
     closeModal();
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("deleteModal");
+  const modalBox = document.getElementById("deleteModalBox");
+  const cancelBtn = document.getElementById("cancelDelete");
+  const deleteForm = document.getElementById("deleteForm");
+
+  // Semua tombol delete
+  const deleteButtons = document.querySelectorAll(".delete-activity-btn");
+
+  deleteButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const url = btn.getAttribute("data-url");
+
+      // Set form action
+      deleteForm.action = url;
+
+      // Tampilkan modal
+      modal.classList.remove("hidden");
+
+      // Animasi masuk
+      setTimeout(() => {
+        modalBox.classList.remove("scale-95", "opacity-0");
+        modalBox.classList.add("scale-100", "opacity-100");
+      }, 10);
+    });
+  });
+
+  // Tutup modal
+  cancelBtn.addEventListener("click", () => {
+    closeModal();
+  });
+
+  function closeModal() {
+    modalBox.classList.add("scale-95", "opacity-0");
+    modalBox.classList.remove("scale-100", "opacity-100");
+
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 200);
+  }
+
+  // Klik di luar modal menutup modal
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
   });
 });

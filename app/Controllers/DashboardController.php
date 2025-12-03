@@ -4,138 +4,186 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\UsersModel;
-use CodeIgniter\HTTP\ResponseInterface;
+use App\Models\TaskExecModel; 
+use App\Models\ActivityExecModel; 
+use App\Models\ActivityScheduleModel; 
 
 class DashboardController extends BaseController
 {
     protected $tasksModel, $notesModel, $activitiesModel, $userModel;
+    protected $taskExecModel, $activityExecModel, $scheduleModel;
+
     public function __construct()
     {
         helper('form');
-        $this->userModel = new UsersModel();
-        $this->tasksModel = new \App\Models\TasksModel();
-        $this->notesModel = new \App\Models\NotesModel();
+        $this->userModel       = new UsersModel();
+        $this->tasksModel      = new \App\Models\TasksModel();
+        $this->notesModel      = new \App\Models\NotesModel();
         $this->activitiesModel = new \App\Models\ActivitiesModel();
+        
+        $this->taskExecModel     = new TaskExecModel();
+        $this->activityExecModel = new ActivityExecModel();
+        $this->scheduleModel     = new ActivityScheduleModel();
     }
+
     public function profile()
     {
         $userId = session()->get('user_id');
-
-        if (!$userId) {
-            return redirect()->to('/login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
+        if (!$userId) return redirect()->to('/login')->with('error', 'Silakan login.');
         $user = $this->userModel->find($userId);
-
-        if (!$user) {
-            return redirect()->back()->with('error', 'User tidak ditemukan.');
-        }
-
-        return view('dashboard/profile/index', [
-            'user' => $user
-        ]);
+        if (!$user) return redirect()->back()->with('error', 'User tidak ditemukan.');
+        return view('dashboard/profile/index', ['user' => $user]);
     }
 
     public function index()
     {
-        $userId = session()->get('user_id'); // Pastikan session login aktif
+        $userId = session()->get('user_id'); 
         $today  = date('Y-m-d');
 
-        // ===============================
-        // 1️⃣ SUMMARY SECTION
-        // ===============================
-        $completedToday = $this->tasksModel
-            ->select('tasks.id')
+        // ============================================================
+        // 1️⃣ LOGIKA "COMPLETED TODAY" (HANYA YANG DONE)
+        // ============================================================
+        
+        // Hitung dari Exec (Riwayat Nyata)
+        $doneTaskCount = $this->taskExecModel
+            ->join('tasks', 'tasks.id = task_exec.task_id')
             ->join('activities', 'activities.id = tasks.activity_id')
             ->where('activities.created_by', $userId)
-            ->where('DATE(tasks.updated_at)', $today)
-            ->where('tasks.status', 'completed')
+            ->where('DATE(task_exec.created_at)', $today)
+            ->where('task_exec.status', 'done')
             ->countAllResults();
 
-        $plannedToday = $this->tasksModel
-            ->select('tasks.id')
+        $doneActCount = $this->activityExecModel
+            ->join('activities', 'activities.id = activity_exec.activity_id')
+            ->where('activities.created_by', $userId)
+            ->where('DATE(activity_exec.created_at)', $today)
+            ->where('activity_exec.status', 'done')
+            ->countAllResults();
+
+        $completedToday = $doneTaskCount + $doneActCount;
+
+
+        // ============================================================
+        // 2️⃣ LOGIKA "PLANNED TODAY" (TOTAL BEBAN KERJA HARI INI)
+        // Rumus: (Sudah Terjadi Hari Ini) + (Masih Harus Terjadi Hari Ini)
+        // ============================================================
+        
+        // A. BUCKET MASA LALU (History Exec Hari Ini: Done + Missed)
+        $historyTask = $this->taskExecModel
+            ->join('tasks', 'tasks.id = task_exec.task_id')
+            ->join('activities', 'activities.id = tasks.activity_id')
+            ->where('activities.created_by', $userId)
+            ->where('DATE(task_exec.created_at)', $today)
+            ->countAllResults(); // Menghitung Done + Missed
+
+        $historyAct = $this->activityExecModel
+            ->join('activities', 'activities.id = activity_exec.activity_id')
+            ->where('activities.created_by', $userId)
+            ->where('DATE(activity_exec.created_at)', $today)
+            ->countAllResults();
+
+        // B. BUCKET MASA DEPAN (Master/Schedule Upcoming Hari Ini)
+        // Syarat Anti-Duplikat: Status harus 'upcoming' DAN Tanggal harus Hari Ini.
+        // (Jika sudah done, status/tanggal pasti sudah berubah, jadi tidak terambil disini)
+        
+        $upcomingTask = $this->tasksModel
             ->join('activities', 'activities.id = tasks.activity_id')
             ->where('activities.created_by', $userId)
             ->where('DATE(tasks.due_time)', $today)
+            ->where('tasks.status', 'upcoming') 
             ->countAllResults();
 
-        // Activities — Weekly social type (e.g. gotong royong)
+        $upcomingAct = $this->scheduleModel
+            ->join('activities', 'activities.id = activity_schedule.activity_id')
+            ->where('activities.created_by', $userId)
+            ->where('DATE(activity_schedule.next_run_at)', $today)
+            // Schedule tidak punya status, tapi next_run_at akan digeser worker jika selesai
+            ->countAllResults();
+
+        $plannedToday = ($historyTask + $historyAct) + ($upcomingTask + $upcomingAct);
+
+
+        // ============================================================
+        // 3️⃣ DATA PENDUKUNG LAINNYA
+        // ============================================================
+
         $socialWeek = $this->activitiesModel
             ->where('created_by', $userId)
-            ->where('type', 'social') // atau sesuaikan nama tipe kamu
+            ->where('type', 'social') 
             ->where('YEARWEEK(created_at, 1)', date('oW'))
             ->countAllResults();
 
-        // Activities — Automation (notify_enabled = 1 berarti aktif)
         $automationPending = $this->activitiesModel
             ->where('created_by', $userId)
             ->where('notify_enabled', 1)
             ->countAllResults();
 
-        // ===============================
-        // 2️⃣ REAL-TIME TASK LIST
-        // ===============================
+        // Task List (Untuk ditampilkan di tabel)
+        $startWindow = date('Y-m-d 00:00:00', strtotime("$today -3 days"));
+        $endWindow   = date('Y-m-d 23:59:59', strtotime("$today +3 days"));
+
         $tasks = $this->tasksModel
             ->select('tasks.id, tasks.title, tasks.description, tasks.due_time, tasks.status')
             ->join('activities', 'activities.id = tasks.activity_id')
             ->where('activities.created_by', $userId)
+            ->where('tasks.due_time >=', $startWindow)
+            ->where('tasks.due_time <=', $endWindow)
             ->orderBy('tasks.due_time', 'ASC')
-            ->limit(10)
             ->findAll();
 
-        // ===============================
-        // 3️⃣ NOTES SECTION
-        // ===============================
-        // Misal notes disimpan dalam kolom "description"
-        $notes = array_filter($tasks, function ($task) {
-            return !empty($task['content']);
-        });
+        $activityDummy = $this->activitiesModel->where('created_by', $userId)->first();
+        $activityName  = $activityDummy ? $activityDummy['name'] : null;
 
-        // ===============================
-        // 4️⃣ CALENDAR DATA (untuk JS)
-        // ===============================
-        $calendarTasks = $this->tasksModel
-            ->select('tasks.id, tasks.title, tasks.due_time, tasks.status')
+        $notes = $this->notesModel->where('user_id', $userId)->findAll();
+
+        // 4️⃣ CALENDAR DATA (GABUNGAN TASK + ACTIVITY SCHEDULE)
+        // ====================================================
+        
+        // A. Ambil Tasks
+        $tasksData = $this->tasksModel
+            ->select('tasks.id, tasks.title, tasks.due_time, tasks.status, "task" as type')
             ->join('activities', 'activities.id = tasks.activity_id')
             ->where('activities.created_by', $userId)
             ->where('MONTH(tasks.due_time)', date('m'))
             ->findAll();
 
+        // B. Ambil Activity Schedules
+        // Kita join ke activities untuk dapat nama aktivitasnya
+        $activityData = $this->scheduleModel
+            ->select('activities.id, activities.name as title, activity_schedule.next_run_at as due_time, activities.status, "activity" as type')
+            ->join('activities', 'activities.id = activity_schedule.activity_id')
+            ->where('activities.created_by', $userId)
+            ->where('MONTH(activity_schedule.next_run_at)', date('m'))
+            ->findAll();
 
-        // ===============================
-        // 5️⃣ PROTEKSI INPUT / VALIDASI
-        // ===============================
+        // C. Gabungkan keduanya
+        $calendarTasks = array_merge($tasksData, $activityData);
+        
+        // Proteksi XSS / Format Output
         helper('text');
         foreach ($tasks as &$task) {
             $task['title'] = esc($task['title'] ?? '');
-            $task['description'] = esc($task['description'] ?? '');
-            // Jika description berbentuk JSON Editor.js, ekstrak teks-nya
-            $decoded = json_decode($task['description'], true);
+            
+            // Logika parsing JSON description (Editor.js)
+            $raw = html_entity_decode($task['description'] ?? '', ENT_QUOTES, 'UTF-8');
+            $decoded = json_decode($raw, true);
+            
             if (json_last_error() === JSON_ERROR_NONE && isset($decoded['blocks'])) {
                 $texts = [];
-
                 foreach ($decoded['blocks'] as $block) {
-                    // Tangani berbagai tipe block (checklist, paragraph, dll)
                     if ($block['type'] === 'checklist' && isset($block['data']['items'])) {
-                        foreach ($block['data']['items'] as $item) {
-                            $texts[] = $item['text'] ?? '';
-                        }
+                        foreach ($block['data']['items'] as $item) $texts[] = $item['text'] ?? '';
                     } elseif ($block['type'] === 'paragraph' && isset($block['data']['text'])) {
                         $texts[] = strip_tags($block['data']['text']);
                     }
                 }
-
-                // Gabungkan teks hasil ekstraksi menjadi satu string
                 $task['description_text'] = implode(', ', array_filter($texts));
             } else {
-                // Kalau bukan JSON atau kosong, fallback ke teks biasa
-                $task['description_text'] = $task['description'];
+                $task['description_text'] = strip_tags($task['description'] ?? '');
             }
         }
 
-        // ===============================
-        // 6️⃣ KIRIM KE VIEW
-        // ===============================
+        // Return View
         $data = [
             'completedToday'    => $completedToday,
             'plannedToday'      => $plannedToday,
@@ -143,14 +191,10 @@ class DashboardController extends BaseController
             'automationPending' => $automationPending,
             'tasks'             => $tasks,
             'notes'             => $notes,
-            'calendarTasks'     => json_encode($calendarTasks), // untuk JS calendar.js
+            'activityDummy'     => $activityName,
+            'calendarTasks'     => json_encode($calendarTasks), 
         ];
 
         return view('dashboard/index', $data);
-    }
-
-    public function task()
-    {
-        return view('dashboard/task/index');
     }
 }

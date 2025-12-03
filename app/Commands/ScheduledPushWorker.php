@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Models\ActivitiesModel;
 use App\Models\ActivityParticipantsModel;
 use App\Models\ActivityScheduleModel;
+
 use App\Models\UserDeviceModel;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;

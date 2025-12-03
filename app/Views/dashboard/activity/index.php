@@ -3,11 +3,12 @@
 <?= $this->section('content'); ?>
 
   <!-- Main Content -->
-    <main class="flex-1 p-6">
+    <main class="flex-1 p-3">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold">Activity List</h2>
             <?= view('dashboard/activity/components/filter_tabs_user') ?>
         </div>
+        <div id="toastContainer" class="fixed top-5 right-5 space-y-2 z-50"></div>
         <div class="mb-6 flex space-x-4" id="planningIcons">
             <a href="<?= base_url('dashboard/activity/create') ?>" class="planning-icon plus" id="createBtn" title="Create New Activities">
                 <svg class="w-6 h-6 text-blue-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,6 +81,25 @@
     </div>
     <?= view('dashboard/activity/components/modal_task') ?>
 </main>
+<!-- Bulk Delete Modal -->
+<div id="bulkDeleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+  <div id="bulkModalContent" class="bg-white rounded-lg shadow-xl p-6 transform scale-95 opacity-0 transition-all duration-300 ease-out">
+    <div class="flex items-center mb-4">
+      <svg class="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-800">Delete Confirmation</h3>
+    </div>
+    <p id="bulkDeleteMessage" class="text-gray-600 mb-4">Are you sure you want to delete selected tasks?</p>
+    <div class="flex justify-end space-x-3">
+      <button id="cancelBulkDelete" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors">Cancel</button>
+      <button id="confirmBulkDelete" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>const BULK_DELETE_URL = "<?= base_url('dashboard/activity/bulk-delete') ?>"; </script>
+
 <script src="<?= base_url('assets/js/main.js') ?>" type="module"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {

@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".sub-task").forEach((task) => {
     task.addEventListener("click", (e) => {
       const detail = task.querySelector(".sub-detail");
-      if (!detail) return; // jika tidak ada .sub-detail, langsung skip
+      if (!detail) return;
 
       document.querySelectorAll(".sub-detail").forEach((d) => {
         if (d !== detail) d.classList.add("hidden");

@@ -3,18 +3,21 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\TaskExecModel;
 use App\Models\TasksModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class TaskController extends BaseController
 {
-    protected $taskModel, $user, $activityModel;
+    protected $taskModel, $user, $activityModel, $sheduleModel, $taskExecModel;
 
     public function __construct(){
         helper(['form']);
         $this->user = session()->get('user');
         $this->taskModel = new TasksModel();
+        $this->taskExecModel = new TaskExecModel();
         $this->activityModel = new \App\Models\ActivitiesModel();
+        $this->sheduleModel = new \App\Models\ActivityScheduleModel();
     }
     public function create($id)
     {
@@ -22,12 +25,12 @@ class TaskController extends BaseController
     }
     public function store()
     {
+        $userId = session('user_id');
         $titles    = $this->request->getPost('titles');     // array
         $contents  = $this->request->getPost('contents');   // array JSON dari EditorJS
-        $dueTime   = $this->request->getPost('due_time');
         $priority  = $this->request->getPost('priority');
         $activityId = $this->request->getPost('activity_id');
-
+        
         // Validasi dasar
         $errors = [];
         if (!is_array($titles) || empty($titles)) {
@@ -35,9 +38,6 @@ class TaskController extends BaseController
         }
         if (!is_array($contents) || empty($contents)) {
             $errors['contents'] = 'Minimal ada 1 catatan.';
-        }
-        if (empty($dueTime) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $dueTime)) {
-            $errors['due_time'] = 'Tanggal & waktu tidak valid.';
         }
         if (!in_array($priority, ['low','medium','high'])) {
             $errors['priority'] = 'Prioritas tidak valid.';
@@ -51,6 +51,16 @@ class TaskController extends BaseController
         if (!$activity || $activity['created_by'] != session()->get('user_id')) {
             $errors['activity_id'] = 'Activity tidak ditemukan atau tidak boleh diakses.';
         }
+        $nextSchedule = $this->sheduleModel->getNextSchedule($activityId);
+        if (!$nextSchedule) {
+            $errors['due_time'] = 'Activity ini belum memiliki schedule, tidak bisa membuat task.';
+        }
+
+        if (!empty($errors)) {
+            return redirect()->back()->withInput()->with('errors', $errors);
+        }
+
+        $dueTime = $nextSchedule['next_run_at'];
 
         if (!empty($errors)) {
             return redirect()->back()->withInput()->with('errors', $errors);
@@ -61,6 +71,7 @@ class TaskController extends BaseController
             foreach ($titles as $i => $title) {
                 $insertData[] = [
                     'title'       => $title,
+                    'user_id'     => $userId,
                     'description' => $contents[$i] ?? null, // isi catatan dari editor
                     'due_time'    => $dueTime,
                     'priority'    => $priority,
@@ -96,15 +107,14 @@ class TaskController extends BaseController
         
         
         $task = $this->taskModel->find($taskId);
-        $activity = $this->activityModel->find($task['activity_id']);
-        if (!$activity || $activity['created_by'] != session()->get('user_id')) {
+        $activityID = $this->activityModel->find($task['activity_id']);
+        if (!$activityID || $activityID['created_by'] != session()->get('user_id')) {
             $errors['activity_id'] = 'Activity tidak ditemukan atau tidak boleh diakses.';
         }
         
         
         $title      = $this->request->getPost('titles');
         $content    = $this->request->getPost('contents'); // JSON dari EditorJS
-        $dueTime    = $this->request->getPost('due_time');
         $priority   = $this->request->getPost('priority');
         
         // Validasi dasar
@@ -112,23 +122,17 @@ class TaskController extends BaseController
         if (empty($title)) {
             $errors['title'] = 'Judul task tidak boleh kosong.';
         }
-        if (empty($dueTime) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/', $dueTime)) {
-            $errors['due_time'] = 'Tanggal & waktu tidak valid.';
-        }
         if (!in_array($priority, ['low','medium','high'])) {
             $errors['priority'] = 'Prioritas tidak valid.';
         }
         
         if (!empty($errors)) {
-            dd($errors);
             return redirect()->back()->withInput()->with('errors', $errors);
         }
-
         try {
             $test = $this->taskModel->update($taskId, [
                 'title'       => $title,
                 'description' => $content,
-                'due_time'    => $dueTime,
                 'priority'    => $priority,
                 'updated_at'  => date('Y-m-d H:i:s'),
             ]);
@@ -141,7 +145,6 @@ class TaskController extends BaseController
     public function getSubtask($id)
     {
         $task = $this->taskModel->find($id);
-        // dd(session()->get());
         if (!$task) {
             return $this->response->setStatusCode(404)
                 ->setJSON(['error' => 'Subtask not found']);
@@ -205,25 +208,126 @@ class TaskController extends BaseController
 
     public function completedTask($id)
     {
-        $id = (int) $id; // sanitasi
+        $id = (int) $id;
         $userId = session('user_id');
+
         if (!$userId) {
             return redirect()->to('/login')->with('error', 'You must log in first');
         }
+
         $task = $this->taskModel->find($id);
         if (!$task) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
-        if ($this->taskModel->getActivitybyTask($id)['created_by'] !== $userId) {
+
+        // Cek pemilik activity
+        $activity = $this->taskModel->getActivitybyTask($id);
+        if ($activity['created_by'] !== $userId) {
             return redirect()->back()->with('error', 'Unauthorized access to task');
         }
 
-        $this->taskModel->update($id, [
-            'status' => 'done',
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
+        // --- Mulai Transaction ------------------
+        $db = \Config\Database::connect();
+        $db->transStart();
 
-        return redirect()->back()->with('success', 'Task marked as complete');
+        try {
+            // Update Task Status
+            $this->taskModel->update($id, [
+                'status'     => 'done',
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // Insert ke task_exec
+            $this->taskExecModel->insert([
+                'task_id'    => $id,
+                'run_at'     => date('Y-m-d H:i:s'),
+                'status'     => 'done',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // Commit jika aman
+            $db->transComplete();
+
+            // Jika trans gagal -> rollback otomatis
+            if ($db->transStatus() === false) {
+                return redirect()->back()->with('error', 'Failed to complete task. Please try again.');
+            }
+
+            return redirect()->back()->with('success', 'Task marked as complete');
+
+        } catch (\Throwable $e) {
+            // Manual rollback jika error
+            $db->transRollback();
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
+    public function bulkDelete()
+    {
+        // Hanya boleh POST / DELETE
+        if ($this->request->getMethod(true) !== 'POST') {
+            return $this->response->setStatusCode(405)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Invalid request method'
+                ]);
+        }
+
+        $json = $this->request->getJSON(true);
+
+        // Validasi payload
+        if (!$json || !isset($json['task_ids']) || !is_array($json['task_ids'])) {
+            return $this->response->setStatusCode(400)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Invalid request payload, task_ids missing'
+                ]);
+        }
+
+        $taskIds = array_map('intval', $json['task_ids']); 
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            return $this->response->setStatusCode(401)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ]);
+        }
+
+        // Ambil semua task yang sesuai ID
+        $tasks = $this->taskModel
+            ->whereIn('id', $taskIds)
+            ->findAll();
+
+        if (empty($tasks)) {
+            return $this->response->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'No tasks found'
+                ]);
+        }
+
+        // Pastikan semua task milik user
+        foreach ($tasks as $task) {
+            $activity = $this->activityModel->find($task['activity_id']);
+
+            if (!$activity || $activity['created_by'] != $userId) {
+                return $this->response->setStatusCode(403)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'You do not have permission to delete some tasks'
+                    ]);
+            }
+        }
+
+        // Delete menggunakan whereIn
+        $this->taskModel->whereIn('id', $taskIds)->delete();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Tasks deleted successfully',
+            'deleted_ids' => $taskIds
+        ]);
+    }
 }

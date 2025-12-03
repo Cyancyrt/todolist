@@ -1,26 +1,29 @@
 <?= $this->extend('dashboard/template/layout') ?>
 
 <?= $this->section('content') ?>
+<?php if(session()->getFlashdata('error')): ?>
+<div id="alert-error" class="fixed top-5 right-5 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-slide-in z-50">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <span><?= session()->getFlashdata('error') ?></span>
+    <button class="ml-3 text-white hover:text-gray-200" onclick="this.parentElement.remove()">✕</button>
+</div>
+<?php endif; ?>
+
+<?php if(session()->getFlashdata('errors')): ?>
+<?php foreach (session('errors') as $error): ?>
+    <div id="alert-error" class="fixed top-5 right-5 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-slide-in z-50">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <span><?= $error ?></span>
+    <button class="ml-3 text-white hover:text-gray-200" onclick="this.parentElement.remove()">✕</button>
+</div>
+<?php endforeach; ?>
+<?php endif; ?>
 <main class="flex-1 min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-purple-50">
   <div class="w-full max-w-3xl">
-    <!-- Flash Messages -->
-    <?php if (session()->getFlashdata('errors')): ?>
-      <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-        <?= implode('<br>', session()->getFlashdata('errors')) ?>
-      </div>
-    <?php endif; ?>
-
-    <?php if (session()->getFlashdata('success')): ?>
-      <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-        <?= session()->getFlashdata('success') ?>
-      </div>
-    <?php endif; ?>
-
     <form id="note-form" class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 border border-gray-100"
           action="<?= base_url('dashboard/notes/save') ?>" method="POST" novalidate>
       <?php csrf_field() ?>
 
-      <!-- Header dengan Ikon -->
       <div class="text-center space-y-2">
         <div class="flex items-center justify-center space-x-2">
           <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,7 +34,6 @@
         <p class="text-gray-600 text-sm sm:text-base">Catat aktivitas dan pikiran Anda dengan mudah dan terorganisir.</p>
       </div>
 
-      <!-- Informasi Catatan -->
       <div class="space-y-4">
         <h3 class="flex items-center space-x-2 text-lg font-semibold text-gray-700">
           <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <!-- Aktivitas (Opsional) -->
+      <?php if (!empty($activities) && is_array($activities)): ?>
       <div class="space-y-4">
         <h3 class="flex items-center space-x-2 text-lg font-semibold text-gray-700">
           <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,25 +90,21 @@
             </svg>
           </button>
 
-          <!-- Dropdown List -->
           <ul x-show="open" @click.outside="open = false"
               class="absolute z-10 bg-white border border-gray-300 rounded-lg mt-2 w-full max-h-48 overflow-y-auto shadow-lg transition-all duration-200">
-            <?php if (isset($activities) && is_array($activities)): ?>
               <?php foreach ($activities as $activity): ?>
                 <li class="px-4 py-2 hover:bg-blue-100 cursor-pointer"
                     @click="selectedText='<?= esc($activity['name']) ?>'; selectedValue='<?= esc($activity['id']) ?>'; open=false;">
                   <?= esc($activity['name']) ?>
                 </li>
               <?php endforeach; ?>
-            <?php endif; ?>
           </ul>
 
-          <!-- Hidden input untuk dikirim ke server -->
           <input type="hidden" name="activity_id" :value="selectedValue">
         </div>
       </div>
+      <?php endif; ?>
 
-      <!-- Tombol Simpan -->
       <div class="pt-4">
         <button type="submit"
                 class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-4 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400">

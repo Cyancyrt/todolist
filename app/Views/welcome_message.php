@@ -8,6 +8,13 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
+<?php $request = service('request'); ?>
+
+<?php if ($request->getGet('logout')): ?>
+    <div id="logoutAlert" class="p-3 bg-green-100 text-green-700 rounded-lg">
+        Anda telah berhasil logout.
+    </div>
+<?php endif; ?>
 
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -52,25 +59,25 @@
                             </filter>
                         </defs>
                         <!-- Enhanced Calendar with More Details -->
-                        <rect x="30" y="40" width="240" height="200" rx="15" fill="#F3F4F6" stroke="#4F46E5" stroke-width="3" filter="url(#glow)"/>
+                        <rect x="20" y="40" width="260" height="200" rx="15" fill="#F3F4F6" stroke="#4F46E5" stroke-width="3" filter="url(#glow)"/>
                         <text x="150" y="65" text-anchor="middle" font-size="16" fill="#374151" font-weight="bold">Kalender</text>
-                        <!-- Days with Colors and Icons -->
-                        <rect x="45" y="80" width="30" height="25" fill="#10B981" rx="5"/><text x="60" y="95" text-anchor="middle" font-size="12" fill="white">M</text>
-                        <rect x="85" y="80" width="30" height="25" fill="#F59E0B" rx="5"/><text x="100" y="95" text-anchor="middle" font-size="12" fill="white">T</text>
-                        <rect x="125" y="80" width="30" height="25" fill="#EF4444" rx="5"/><text x="140" y="95" text-anchor="middle" font-size="12" fill="white">W</text>
-                        <rect x="165" y="80" width="30" height="25" fill="#8B5CF6" rx="5"/><text x="180" y="95" text-anchor="middle" font-size="12" fill="white">T</text>
-                        <rect x="205" y="80" width="30" height="25" fill="#06B6D4" rx="5"/><text x="220" y="95" text-anchor="middle" font-size="12" fill="white">F</text>
+                        <!-- Days with Colors and Icons (7 days: Mon to Sun, centered) -->
+                        <rect x="40" y="80" width="25" height="25" fill="#10B981" rx="5"/><text x="52.5" y="95" text-anchor="middle" font-size="10" fill="white">M</text>
+                        <rect x="70" y="80" width="25" height="25" fill="#F59E0B" rx="5"/><text x="82.5" y="95" text-anchor="middle" font-size="10" fill="white">T</text>
+                        <rect x="100" y="80" width="25" height="25" fill="#EF4444" rx="5"/><text x="112.5" y="95" text-anchor="middle" font-size="10" fill="white">W</text>
+                        <rect x="130" y="80" width="25" height="25" fill="#8B5CF6" rx="5"/><text x="142.5" y="95" text-anchor="middle" font-size="10" fill="white">T</text>
+                        <rect x="160" y="80" width="25" height="25" fill="#06B6D4" rx="5"/><text x="172.5" y="95" text-anchor="middle" font-size="10" fill="white">F</text>
+                        <rect x="190" y="80" width="25" height="25" fill="#EC4899" rx="5"/><text x="202.5" y="95" text-anchor="middle" font-size="10" fill="white">S</text>
+                        <rect x="220" y="80" width="25" height="25" fill="#14B8A6" rx="5"/><text x="232.5" y="95" text-anchor="middle" font-size="10" fill="white">S</text>
                         <!-- Clock Icon for Time Management -->
                         <circle cx="150" cy="130" r="20" fill="#4F46E5" filter="url(#glow)"/>
                         <path d="M150 115 L150 130 L160 140" stroke="white" stroke-width="2" stroke-linecap="round"/>
                         <text x="150" y="135" text-anchor="middle" font-size="10" fill="white"></text>
-                        <!-- Activity Icons with Animation -->
+                        <!-- Activity Icons with Subtle Animation -->
                         <circle cx="220" cy="130" r="20" fill="#10B981" filter="url(#glow)" :class="{ 'animate-pulse': animate }"/>
                         <text x="220" y="135" text-anchor="middle" font-size="12" fill="white">✓</text>
-                        <circle cx="80" cy="160" r="20" fill="#F59E0B" filter="url(#glow)" :class="{ 'animate-bounce': animate }"/>
+                        <circle cx="80" cy="160" r="20" fill="#F59E0B" filter="url(#glow)" :class="{ 'animate-pulse': animate }"/>
                         <text x="80" y="165" text-anchor="middle" font-size="12" fill="white">!</text>
-                        <!-- Arrow with Animation -->
-                        <path d="M150 200 L165 215 L135 215 Z" fill="#4F46E5" filter="url(#glow)" :class="{ 'animate-ping': animate }"/>
                         <!-- Connecting Lines for Flow -->
                         <line x1="150" y1="150" x2="220" y2="150" stroke="#4F46E5" stroke-width="2" stroke-dasharray="5,5"/>
                         <line x1="150" y1="150" x2="80" y2="180" stroke="#4F46E5" stroke-width="2" stroke-dasharray="5,5"/>
@@ -83,6 +90,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </section>
 
@@ -224,9 +232,24 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-8 px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto text-center">
-            <p class="text-gray-400">&copy; 2023 TimeMaster. Semua hak cipta dilindungi. Dibuat untuk produktivitas Anda.</p>
+            <p class="text-gray-400">&copy; 2025 RoutinePath. Semua hak cipta dilindungi. Dibuat untuk produktivitas Anda.</p>
         </div>
     </footer>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Hilangkan parameter logout=1 dari URL
+    if (window.location.search.includes("logout=1")) {
+        const newURL = window.location.origin + window.location.pathname;
+        history.replaceState({}, document.title, newURL);
+    }
 
+    // Auto-hide alert after 3s
+    setTimeout(() => {
+        const alert = document.getElementById("logoutAlert");
+        if (alert) alert.style.display = "none";
+    }, 3000);
+});
+
+</script>
 </body>
 </html>

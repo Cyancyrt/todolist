@@ -1,4 +1,4 @@
-<div id="subActivityModal" class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center z-50 transition-opacity duration-300">
+<div id="subActivityModal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center z-10 transition-opacity duration-300">
     <div class="bg-white w-full max-w-sm mx-4 rounded-xl shadow-lg p-6 transform scale-95 transition-transform duration-300" style="max-height: 80vh; overflow-y: auto;">
         <!-- Header dengan Tombol di Kanan Atas -->
         <div class="bg-blue-50 text-gray-800 p-4 rounded-t-xl -m-6 mb-4 border-b border-gray-200 flex justify-between items-center">

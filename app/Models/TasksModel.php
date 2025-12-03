@@ -15,6 +15,7 @@ class TasksModel extends Model
     protected $allowedFields    = [
         'activity_id',
         'title',
+        'user_id',
         'description',
         'due_time',
         'priority',
@@ -64,12 +65,13 @@ class TasksModel extends Model
         }
         return null;
     }
-    public function getTasksByMonth($year, $month)
+    public function getTasksByMonth($year, $month, $userId)
     {
         $start = date("$year-$month-01 00:00:00");
         $end = date("$year-$month-t 23:59:59");
 
-        return $this->where('due_time >=', $start)
+        return $this->where('user_id', $userId)
+                    ->where('due_time >=', $start)
                     ->where('due_time <=', $end)
                     ->orderBy('due_time', 'ASC')
                     ->findAll();

@@ -33,6 +33,7 @@ class CreateActivities extends Migration
         ]);
 
         $this->forge->addKey('id', true);
+        $this->forge->addKey('next_run_at'); // Index biasa untuk pencarian jadwal
         $this->forge->addForeignKey('activity_id', 'activities', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('activity_schedule');
 

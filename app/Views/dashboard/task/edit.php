@@ -1,7 +1,27 @@
 <?= $this->extend('dashboard/template/layout') ?>
 <?= $this->section('content') ?>
-
 <main class="flex-1 min-h-screen flex flex-col items-center justify-center p-6">
+  <!-- Flash Message Toast -->
+<div class="fixed top-5 right-5 z-50 space-y-3">
+  <?php if (session()->getFlashdata('errors')): ?>
+    <div class="animate-slide toast bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg flex items-start gap-3">
+      <div><?= implode('<br>', session()->getFlashdata('errors')) ?></div>
+    </div>
+  <?php endif; ?>
+
+  <?php if (session()->getFlashdata('error')): ?>
+    <div class="animate-slide toast bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg flex items-start gap-3">
+      <div><?= session()->getFlashdata('error') ?></div>
+    </div>
+  <?php endif; ?>
+
+  <?php if (session()->getFlashdata('success')): ?>
+    <div class="animate-slide toast bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg flex items-start gap-3">
+      <div><?= session()->getFlashdata('success') ?></div>
+    </div>
+  <?php endif; ?>
+</div>
+
   <div class="relative w-full">
     <button id="back-btn" type="button"
       class="absolute top-0 start-0 mt-4 mr-4 w-8 h-8 sm:w-10 sm:h-10 bg-white hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-blue-500 transition-all duration-200 hover:scale-110"
@@ -28,13 +48,7 @@
         <div id="editorjs" class="editor-container mb-6"></div>
 
         <div class="flex flex-col sm:flex-row gap-4 mb-6 flex-wrap items-center justify-start">
-          <div id="due-time-btn" class="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 cursor-pointer">
-            <svg class="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <span id="due-time-text" class="text-gray-700 text-sm sm:text-base truncate">Pilih Tanggal & Waktu</span>
-            <input type="hidden" id="due-time-value" name="due_time" value="<?= esc(old('due_time', esc($task['due_time'] ?? ''))) ?>">
-          </div>
+          <span>Prioritas :</span>
       <!-- Prioritas -->
       <button type="button" id="priority-btn" class="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 min-w-0 flex-1 sm:flex-none">
         <svg id="priority-icon" class="w-6 h-6 flex-shrink-0 leading-none translate-y-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 21V3h16l-2 5 2 5H4z"/></svg>
@@ -205,17 +219,6 @@ document.getElementById('create-btn').addEventListener('click', async (e) => {
 });
 </script>
 <script>
-// Benerin Flatpickr untuk tanggal (pastikan CDN dimuat)
-flatpickr("#due-time-btn", {
-  enableTime: true,
-  dateFormat: "Y-m-d H:i",
-  defaultDate: "<?= esc($task['due_time'] ?? '') ?>",
-  clickOpens: true,
-  onChange: function(selectedDates, dateStr) {
-    document.getElementById('due-time-text').textContent = dateStr || "Pilih Tanggal & Waktu";
-    document.getElementById('due-time-value').value = dateStr;
-  }
-});
 
 // Modal Prioritas
 document.getElementById('priority-btn').addEventListener('click', () => {

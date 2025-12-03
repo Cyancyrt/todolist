@@ -6,7 +6,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging.js";
 
 // Pastikan FIREBASE_CONFIG sudah didefinisikan di window dari server
-const app = initializeApp(window.FIREBASE_CONFIG);
+const firebaseConfig = {
+  apiKey: "AIzaSyCXbk0bs2MBIfVcT2TvPzwm8ts95h8AN9Y",
+  authDomain: "todo-d9c7d.firebaseapp.com",
+  projectId: "todo-d9c7d",
+  storageBucket: "todo-d9c7d.firebasestorage.app",
+  messagingSenderId: "922385975817",
+  appId: "1:922385975817:web:9b027aa99c67aeab9b46d8",
+  measurementId: "G-MFVDFZMYTQ",
+};
+
+const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
 // ✅ Register Service Worker (wajib sebelum getToken)

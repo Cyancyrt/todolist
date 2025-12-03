@@ -14,40 +14,44 @@ class AuthController extends BaseController
      */
     public function __construct()
     {
-        helper(['url', 'form', 'session']);
+        helper(['url', 'form', 'session', 'cookie']);
         $this->userModel = new UsersModel();
-        $this->session = session();
         $this->validation = \Config\Services::validation();
+        $this->session = session();
     }
     public function index(): string
     {
-        return view('auth/login.php', ['session' => $this->session]);
+        $savedEmail = get_cookie('remember_email');
+        return view('auth/login.php', ['session' => session(), 'savedEmail' => $savedEmail]);
     }
     public function auth()
     {
-        // Mengambil data 'username' dan 'password' dari form
         $email = $this->request->getPost('email');
         $password = $this->request->getPost('password');
+        $remember = $this->request->getPost('remember'); // Ambil value checkbox
 
-        // Minta UserModel untuk memeriksa kredensial di kolom 'email'
-        // --- INILAH PERUBAHANNYA ---
         $user = $this->userModel->where('email', $email)->first();
-        // Verifikasi user dan password
+
         if ($user && password_verify($password, $user['password'])) {
-            // Jika login berhasil, siapkan data sesi
             $sessionData = [
                 'user_id'    => $user['id'],
-                'name'       => $user['name'], // menyesuaikan dengan field 'name' di tabel users
-                'email'      => $user['email'], // menggantikan 'email'
+                'name'       => $user['name'],
+                'email'      => $user['email'],
                 'role'       => $user['role'],
                 'isLoggedIn' => true,
             ];
 
             session()->set($sessionData);
 
+            // --- LOGIKA REMEMBER ME ---
+            if ($remember) {
+                set_cookie('remember_email', $email, 3600 * 24 * 30);
+            } else {
+                delete_cookie('remember_email');
+            }
+
             return redirect()->to(base_url('/dashboard'));
         } else {
-            // Jika login gagal
             session()->setFlashdata('error', 'Username atau password salah.');
             return redirect()->back()->withInput();
         }
@@ -56,17 +60,20 @@ class AuthController extends BaseController
     public function logout()
     {
         session()->destroy(); // Menghapus semua data sesi
-        return redirect()->to('/'); // Arahkan kembali ke halaman login
+         // simpan notifikasi 1x tampil
+        return redirect()->to('/?logout=1'); // Arahkan kembali ke halaman login
     }
 
-        public function register()
+    public function register()
     {
         if ($this->request->getMethod() == 'POST') {
             $rules = [
                 'name' => [
-                    'rules' => 'required',
+                    'rules' => 'required|min_length[3]|max_length[100]',
                     'errors' => [
-                        'required' => 'Nama harus diisi.'
+                        'required' => 'Nama harus diisi.',
+                        'min_length' => 'Nama terlalu pendek.',
+                        'max_length' => 'Nama terlalu panjang.'
                     ],
                 ],
                 'email' => [
@@ -78,10 +85,12 @@ class AuthController extends BaseController
                     ]
                 ],
                 'password' => [
-                    'rules' => 'required|min_length[6]',
+                    // Minimal 8 karakter, harus ada Huruf Besar, Kecil, Angka, dan Simbol
+                    'rules' => 'required|min_length[8]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).+$/]',
                     'errors' => [
                         'required' => 'Password harus diisi.',
-                        'min_length' => 'Password minimal 6 karakter.'
+                        'min_length' => 'Password minimal 8 karakter.',
+                        'regex_match' => 'Password harus mengandung setidaknya 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 simbol (spesial karakter).'
                     ]
                 ],
                 'confirmPassword' => [
@@ -99,22 +108,33 @@ class AuthController extends BaseController
                 ]);
             }
 
+            // Sanitasi dan Persiapan Data
             $data = [
-                'name'       => $this->request->getPost('name'),
-                'email'      => $this->request->getPost('email'),
+                // Gunakan htmlspecialchars untuk mencegah XSS pada nama
+                'name'       => htmlspecialchars(trim($this->request->getPost('name'))),
+                'email'      => trim($this->request->getPost('email')),
                 'password'   => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
                 'role'       => 'personal',
                 'created_at' => date('Y-m-d H:i:s'),
             ];
 
-            $success = $this->userModel->save($data);
-            if ($success) {
-                $this->session->setFlashdata('success', 'Registrasi berhasil, silakan login.');
-            } else {
-                $this->session->setFlashdata('error', 'Registrasi gagal, silakan coba lagi.');
+            try {
+                $success = $this->userModel->save($data);
+                
+                if ($success) {
+                    $this->session->setFlashdata('success', 'Registrasi berhasil, silakan login.');
+                    return redirect()->to('/login');
+                } else {
+                    $this->session->setFlashdata('error', 'Gagal menyimpan data ke database.');
+                    return redirect()->back()->withInput();
+                }
+            } catch (\Exception $e) {
+                // Tangkap error jika ada masalah database
+                $this->session->setFlashdata('error', 'Terjadi kesalahan sistem.');
+                return redirect()->back()->withInput();
             }
-            return redirect()->to('/'); // Ganti dengan file login Anda view('auth/login.php');
         }
+        
         return view('auth/register.php');
     }
     public function editProfile($id)
@@ -158,13 +178,13 @@ class AuthController extends BaseController
             ];
             $success = $this->userModel->update($id, $data);
             if ($success) {
-                $this->session->getFlashdata('success', 'Data berhasil diperbarui.');
+                $this->session->setFlashdata('success', 'Data berhasil diperbarui.');
             } else {
-                $this->session->getFlashdata('error', 'Data gagal diperbarui.');
-            }
+                $this->session->setFlashdata('error', 'Data gagal diperbarui.');
+            }   
         } catch (\Throwable $th) {
             dd($th);
-            $this->session->getFlashdata('error', 'Terjadi kesalahan pada server: ' . $th->getMessage());
+            $this->session->setFlashdata('error', 'Terjadi kesalahan pada server: ' . $th->getMessage());
         }
         return redirect()->to('/dashboard');
     }

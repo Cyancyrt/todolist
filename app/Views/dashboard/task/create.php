@@ -2,14 +2,52 @@
 <?= $this->section('content') ?>
 
 <main class="flex-1 min-h-screen flex flex-col items-center justify-center p-6">
+<!-- Flash Message Toast -->
+<div class="fixed top-5 right-5 z-50 space-y-3">
+  <?php if (session()->getFlashdata('errors')): ?>
+    <div class="animate-slide toast bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg flex items-start gap-3">
+      <div><?= implode('<br>', session()->getFlashdata('errors')) ?></div>
+    </div>
+  <?php endif; ?>
+
+  <?php if (session()->getFlashdata('error')): ?>
+    <div class="animate-slide toast bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg flex items-start gap-3">
+      <div><?= session()->getFlashdata('error') ?></div>
+    </div>
+  <?php endif; ?>
+
+  <?php if (session()->getFlashdata('success')): ?>
+    <div class="animate-slide toast bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg flex items-start gap-3">
+      <div><?= session()->getFlashdata('success') ?></div>
+    </div>
+  <?php endif; ?>
+</div>
+
   <div class="relative w-full">
     <button id="back-btn" type="button"
-      class="absolute top-0 start-0 mt-4 mr-4 w-8 h-8 sm:w-10 sm:h-10 bg-white hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-blue-500 transition-all duration-200 hover:scale-110"
-      title="Kembali ke Daftar Task">
-      <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      class="fixed 
+      z-50
+      left-4 top-20              /* mobile */
+      sm:left-6 sm:top-24        /* small devices (≥640px) */
+      md:left-8 md:top-28        /* tablets (≥768px) */
+      lg:left-[300px] lg:top-28     /* desktop with visible sidebar */
+      xl:left-[320px] xl:top-28     /* large desktop */
+
+      
+      w-10 h-10 md:w-12 md:h-12 
+      bg-white hover:bg-gray-200 
+      rounded-full flex items-center justify-center 
+      text-gray-600 hover:text-blue-500
+      transition-all duration-200 shadow">
+
+      <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 19l-7-7 7-7"></path>
       </svg>
+
     </button>
+
+
   </div>
   <form id="task-form" action="<?= base_url('dashboard/task/store') ?>" method="POST">
     <?= csrf_field() ?>
@@ -27,20 +65,14 @@
         <div id="editorjs" class="editor-container mb-6"></div>
 
         <div class="flex flex-col sm:flex-row gap-4 mb-6 flex-wrap items-center justify-start">
-          <div id="due-time-btn" class="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 cursor-pointer">
-            <svg class="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <span id="due-time-text" class="text-gray-700 text-sm sm:text-base truncate">Pilih Tanggal & Waktu</span>
-            <input type="hidden" id="due-time-value" name="due_time">
-          </div>
-      <!-- Prioritas -->
-      <button type="button" id="priority-btn" class="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 min-w-0 flex-1 sm:flex-none">
-        <svg id="priority-icon" class="w-6 h-6 flex-shrink-0 leading-none translate-y-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 21V3h16l-2 5 2 5H4z"/></svg>
-        <input type="hidden" id="priority-value" name="priority" value="low">
-        <span id="priority-text" class="text-gray-700 text-sm sm:text-base leading-none">Prioritas</span>
-      </button>
-    </div>      
+          <span>Prioritas :</span>
+          <!-- Prioritas -->
+          <button type="button" id="priority-btn" class="flex items-center gap-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 min-w-0 flex-1 sm:flex-none">
+            <svg id="priority-icon" class="w-6 h-6 flex-shrink-0 leading-none translate-y-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 21V3h16l-2 5 2 5H4z"/></svg>
+            <input type="hidden" id="priority-value" name="priority" value="low">
+            <span id="priority-text" class="text-gray-700 text-sm sm:text-base leading-none">Prioritas</span>
+          </button>
+        </div>      
         <!-- Modal untuk Prioritas -->
         <div id="priority-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
           <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full relative">
@@ -107,13 +139,11 @@
         header: Header,
         list: EditorjsList,
         paragraph: Paragraph,
-        checklist: { class: Checklist, inlineToolbar: true }
       },
       placeholder: "Tulis catatan di sini...",
       data: {
         time: Date.now(),
         blocks: [
-          { type: "checklist", data: { items: [{ text: "aktivitas 1", checked: true }] } }
         ]
       }
     });

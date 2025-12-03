@@ -2,6 +2,9 @@
 
 <?= $this->section('content') ?>
 <main class="flex-1 min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-purple-50">
+  <!-- Toast Notification -->
+<div id="toast" class="fixed top-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white hidden opacity-0 transition-all duration-300 z-50"></div>
+
   <form id="profile-form" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 border border-gray-100"
         action="<?= base_url('dashboard/profile/update/' . $user['id']) ?>" method="POST" novalidate>
     <?php csrf_field() ?>
@@ -56,29 +59,103 @@
     </div>
 
     <!-- Tombol Simpan dan Batal -->
-    <div class="pt-4 flex flex-col sm:flex-row justify-end gap-4">
-      <a href="<?= base_url('dashboard/profile') ?>" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+    <div class="pt-4 flex flex-row justify-end gap-4 w-full">
+      <a href="<?= base_url('dashboard/profile') ?>" 
+        class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 border border-red-400 text-sm font-medium rounded-lg text-red-600 bg-red-50 hover:bg-red-100 hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition duration-200 ease-in-out">
         Batal
       </a>
+
       <button type="submit"
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition duration-200 ease-in-out shadow-md hover:shadow-lg">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
-        Simpan Perubahan
+        Simpan
+      </button>
+  </div>
+
+  </form>
+  <!-- Modal Konfirmasi -->
+<div id="confirmModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-xl w-11/12 max-w-md p-6 space-y-4">
+    <h3 class="text-lg font-semibold text-gray-800">Konfirmasi Perubahan</h3>
+    <p class="text-gray-600 text-sm">Apakah Anda yakin ingin menyimpan perubahan profil?</p>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <button id="cancelConfirm" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg">
+        Batal
+      </button>
+      <button id="confirmSubmit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+        Ya, Simpan
       </button>
     </div>
-  </form>
-</main>
-<?php if (session()->getFlashdata('errors')): ?>
-  <div class="alert alert-danger mt-2">
-    <?= implode('<br>', session()->getFlashdata('errors')) ?>
   </div>
+</div>
+
+</main>
+
+<script>
+const form = document.getElementById("profile-form");
+const confirmModal = document.getElementById("confirmModal");
+const confirmSubmit = document.getElementById("confirmSubmit");
+const cancelConfirm = document.getElementById("cancelConfirm");
+const toastEl = document.getElementById("toast");
+
+let isConfirmed = false;
+
+// Saat klik submit, tampilkan modal dulu
+form.addEventListener("submit", function (e) {
+  if (!isConfirmed) {
+    e.preventDefault();
+    confirmModal.classList.remove("hidden");
+    confirmModal.classList.add("flex");
+  }
+});
+
+// Jika user klik "Ya, simpan"
+confirmSubmit.addEventListener("click", () => {
+  isConfirmed = true;
+  confirmModal.classList.add("hidden");
+  form.submit();
+});
+
+// Batalkan konfirmasi
+cancelConfirm.addEventListener("click", () => {
+  confirmModal.classList.add("hidden");
+});
+
+
+// -------------------- TOAST MESSAGE --------------------
+
+// Ambil pesan dari session flash (PHP output)
+<?php if (session()->getFlashdata('success')): ?>
+  showToast("<?= session()->getFlashdata('success') ?>", "success");
 <?php endif; ?>
 
-<?php if (session()->getFlashdata('success')): ?>
-  <div class="alert alert-success mt-2">
-    <?= session()->getFlashdata('success') ?>
-  </div>
+<?php if (session()->getFlashdata('errors')): ?>
+  showToast("<?= implode('<br>', session()->getFlashdata('errors')) ?>", "error");
 <?php endif; ?>
+
+
+function showToast(message, type) {
+  toastEl.innerHTML = message;
+
+  if (type === "success") {
+    toastEl.classList.add("bg-green-500");
+    toastEl.classList.remove("bg-red-500");
+  } else {
+    toastEl.classList.add("bg-red-500");
+    toastEl.classList.remove("bg-green-500");
+  }
+
+  toastEl.classList.remove("hidden");
+  setTimeout(() => toastEl.classList.remove("opacity-0"), 10);
+
+  setTimeout(() => {
+    toastEl.classList.add("opacity-0");
+    setTimeout(() => toastEl.classList.add("hidden"), 300);
+  }, 3500);
+}
+</script>
+
 <?= $this->endSection(); ?>

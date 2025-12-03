@@ -43,4 +43,10 @@ class ActivityScheduleModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+    public function getNextSchedule($activityId)
+    {
+        return $this->where('activity_id', $activityId)
+                    ->orderBy('next_run_at', 'ASC')
+                    ->first();
+    }
 }

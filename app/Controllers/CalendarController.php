@@ -20,6 +20,7 @@ class CalendarController extends BaseController
     }
     public function fetchTasks()
     {
+        $userId = session()->get('user_id');    
         // Validasi input agar aman
         $year = $this->request->getGet('year');
         $month = $this->request->getGet('month');
@@ -30,7 +31,7 @@ class CalendarController extends BaseController
         }
 
         // Ambil data tasks berdasarkan bulan & tahun
-        $tasks = $this->tasksModel->getTasksByMonth($year, $month);
+        $tasks = $this->tasksModel->getTasksByMonth($year, $month, $userId);
 
         // Kelompokkan berdasarkan tanggal
         $grouped = [];
@@ -47,4 +48,39 @@ class CalendarController extends BaseController
 
         return $this->response->setJSON($grouped);
     }
+    public function fetchActivities()
+    {
+        $userId = session()->get('user_id');
+
+        // Validasi input agar aman
+        $year = $this->request->getGet('year');
+        $month = $this->request->getGet('month');
+
+        if (!is_numeric($year) || !is_numeric($month) || $month < 1 || $month > 12) {
+            return $this->response->setStatusCode(ResponseInterface::HTTP_BAD_REQUEST)
+                                ->setJSON(['error' => 'Invalid year or month']);
+        }
+
+        // Ambil data activities berdasarkan bulan & tahun
+        $activities = $this->activitiesModel->getAllSchedulesByMonth($year, $month, $userId);
+        
+        // Kelompokkan berdasarkan tanggal schedule terdekat
+        $grouped = [];
+        foreach ($activities as $activity) {
+            if ($activity['next_run_at']) {
+                $dateKey = date('Y-m-d', strtotime($activity['next_run_at']));
+                $grouped[$dateKey][] = [
+                    'id'          => $activity['activity_id'],
+                    'name'        => esc($activity['activity_name']),
+                    'type' => $activity['activity_type'],
+                    'status'   => esc($activity['activity_status']),
+                    'next_run_at' => date('H:i', strtotime($activity['next_run_at'])),
+                    // tambahan info lain jika perlu
+                ];
+            }
+        }
+        // dd($grouped);
+        return $this->response->setJSON($grouped);
+    }
+
 }

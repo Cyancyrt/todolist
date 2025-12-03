@@ -19,6 +19,7 @@ class CreateUserDevices extends Migration
         ]);
 
         $this->forge->addKey('id', true);
+        $this->forge->addKey('user_id');
         $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('user_devices');
     }

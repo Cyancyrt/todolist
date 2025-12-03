@@ -33,16 +33,22 @@
   font-size: 14px;
 }
 .task-card {
+  background: white;
+  border-radius: 8px;
   padding: 4px 6px;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
+  margin-top: 4px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 3px solid transparent;
+}
+
+.task-card .task-name {
+  font-size: 0.65rem; /* sangat kecil tapi masih terbaca */
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .task-card.low {
   background: linear-gradient(135deg, #4caf50, #66bb6a);
@@ -74,33 +80,39 @@
   }
 }
 .status-badge {
-  font-size: 9px;
+  font-size: 0.55rem;
   padding: 1px 4px;
-  border-radius: 8px;
-  text-transform: uppercase;
-  margin-left: 4px;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 1;
 }
 .status-badge.upcoming {
   background: #dbeafe;
   color: #1e40af;
 }
-.status-badge.completed {
+.status-badge.done {
   background: #dcfce7;
   color: #166534;
 }
-.status-badge.overdue {
+.status-badge.missed {
   background: #fed7aa;
   color: #9a3412;
 }
 .priority-icon {
   display: flex;
-  gap: 2px;
   align-items: flex-end;
+  gap: 2px;
+}
+/* Biar row icon + badge lebih rapi */
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .priority-icon div {
-  width: 2.5px;
+  width: 3px;
+  background: #f5f6f9;
   border-radius: 2px;
-  background: #fff;
 }
 @media (max-width: 640px) {
   .calendar-day {
@@ -113,4 +125,80 @@
   .date-number {
     font-size: 12px;
   }
+}
+/* Activity cards */
+.activity-card {
+  background: #eef2ff; /* biru muda */
+  border-radius: 8px;
+  padding: 4px 6px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 3px solid #6366f1; /* garis biru */
+  font-size: 0.65rem;
+}
+
+.activity-card .activity-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-card.done {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.activity-card.overdue {
+  border: 2px solid #f97316;
+  animation: pulse 2s infinite;
+}
+
+.activity-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.55rem;
+  margin-top: 2px;
+}
+
+.activity-type {
+  color: #4f46e5;
+  font-weight: 500;
+}
+
+.activity-time {
+  color: #374151;
+}
+
+/* Reuse pulse animation for overdue */
+@keyframes pulse {
+  0%,
+  100% {
+    border-color: #f97316;
+  }
+  50% {
+    border-color: #fb923c;
+  }
+}
+
+@media (max-width: 640px) {
+  .activity-card {
+    font-size: 11px;
+    padding: 3px 4px;
+  }
+}
+
+#detailModal {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#detailModal.hidden {
+  opacity: 0;
+  transform: scale(0.9);
+}
+#detailModal:not(.hidden) {
+  opacity: 1;
+  transform: scale(1);
 }

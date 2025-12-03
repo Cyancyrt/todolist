@@ -66,12 +66,11 @@
   height: 32px;
   border-radius: 50%;
   background: #e3f2fd; /* Biru lembut */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   cursor: pointer;
+  transform-origin: center;
 }
 .action-icon:hover {
-  transform: scale(1.1);
   background: #bbdefb;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
